@@ -41,27 +41,5 @@ namespace tModPorter
 
 			return base.VisitIdentifierName(node);
 		}
-
-		//public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-		//{
-		//	var childs = node.ChildNodes().ToList();
-		//	//Console.WriteLine(string.Join("-", node.ChildNodes()));
-
-		//	foreach (SyntaxNode child in childs)
-		//	{
-		//		if (child is IdentifierNameSyntax childName)
-		//		{
-		//			Console.WriteLine($"To modify: {childName.Identifier}");
-		//			var newIdentifier = childName.Identifier.Text.ToUpper();
-		//			var leadingTrivia = childName.GetLeadingTrivia();
-		//			var trailingTrivia = childName.GetTrailingTrivia();
-		//			childName = childName.WithIdentifier(SyntaxFactory.Identifier(leadingTrivia, newIdentifier, trailingTrivia));
-		//			Console.WriteLine($"Modified to: {childName.Identifier}");
-		//			//childs[i] = childName;
-		//		}
-		//	}
-
-		//	return base.VisitMemberAccessExpression(node);
-		//}
 	}
 }
