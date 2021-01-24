@@ -194,6 +194,9 @@ namespace tModPorter
 
 		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
 		{
+			if (node.ParameterList == null)
+				return base.VisitAnonymousMethodExpression(node);
+
 			// If the delegate contains any parameter in AnonymousMethodToAddParameter, add a new parameter
 			foreach (ParameterSyntax parameter in node.ParameterList.Parameters)
 			{
