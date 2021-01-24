@@ -4,6 +4,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.Console;
 
 namespace tModPorter
@@ -39,7 +42,6 @@ namespace tModPorter
 				var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter());
 				WriteLine($"Finished loading solution '{solutionPath}'");
 
-				int i = 0;
 				foreach (var document in solution.Projects
 					.SelectMany(x => x.Documents))
 				{
@@ -48,7 +50,19 @@ namespace tModPorter
 
 					var rootNode = await root.GetRootAsync();
 
-					var result = new PropertyRewriter(await document.GetSemanticModelAsync()).Visit(rootNode);
+					var rewriter = new PropertyRewriter(await document.GetSemanticModelAsync());
+					var result = rewriter.Visit(rootNode);
+					var lastUsing = result.ChildNodes().OfType<UsingDirectiveSyntax>().Last();
+
+					// Add the using statements required
+					foreach (string usingToAdd in rewriter.UsingsToAdd)
+					{
+						result = result.InsertNodesAfter(lastUsing, new[]
+						{
+							SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(usingToAdd))
+						});
+					}
+
 					if (!result.IsEquivalentTo(rootNode))
 					{
 						WriteLine($"{document.FilePath} -> Modified");
