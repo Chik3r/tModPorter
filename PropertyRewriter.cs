@@ -24,10 +24,10 @@ namespace tModPorter
 			{"sapling", "TileID.Sets.TreeSapling[Type]"},
 			{"torch", "TileID.Sets.Torch[Type]"},
 			{"ModWorld", "ModSystem"},
-			{"rangedCrit", "GetCrit(DamageClass.Ranged)"},
-			{"magicCrit", "GetCrit(DamageClass.Magic)"},
-			{"thrownCrit", "GetCrit(DamageClass.Throwing)"},
-			{"meleeCrit", "GetCrit(DamageClass.Melee)"},
+			{"rangedCrit", "GetCritChance(DamageClass.Ranged)"},
+			{"magicCrit", "GetCritChance(DamageClass.Magic)"},
+			{"thrownCrit", "GetCritChance(DamageClass.Throwing)"},
+			{"meleeCrit", "GetCritChance(DamageClass.Melee)"},
 			{"rangedDamage", "GetDamage(DamageClass.Ranged)"},
 			{"magicDamage", "GetDamage(DamageClass.Magic)"},
 			{"thrownDamage", "GetDamage(DamageClass.Throwing)"},
@@ -116,10 +116,10 @@ namespace tModPorter
 		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
 		{
 			// Change return type of UseItem to bool?
-			if (node.Identifier.Text == "UseItem")
-			{
-				return node.WithReturnType(SyntaxFactory.IdentifierName("bool? "));
-			}
+			//if (node.Identifier.Text == "UseItem")
+			//{
+			//	return node.WithReturnType(SyntaxFactory.IdentifierName("bool? "));
+			//}
 
 			if (MethodsToRename.TryGetValue(node.Identifier.Text, out string newIdentifier))
 			{
