@@ -14,9 +14,14 @@ namespace tModPorter
 			{"item", "Item"},
 			{"mod", "Mod"},
 			{"player", "Player"},
+			{"npc", "NPC"},
+			{"projectile", "Projectile"},
 			{"DustType", "Find<ModDust>"},
 			{"ProjectileType", "Find<ModProjectile>"},
+			{"GetGoreSlot", "Find<ModGore>"},
 			{"disableSmartCursor", "TileID.Sets.DisableSmartCursor[Type]"},
+			{"sapling", "TileID.Sets.TreeSapling[Type]"},
+			{"torch", "TileID.Sets.Torch[Type]"},
 			{"ModWorld", "ModSystem"},
 			{"rangedCrit", "GetCrit(DamageClass.Ranged)"},
 			{"magicCrit", "GetCrit(DamageClass.Magic)"},
@@ -26,14 +31,15 @@ namespace tModPorter
 			{"magicDamage", "GetDamage(DamageClass.Magic)"},
 			{"thrownDamage", "GetDamage(DamageClass.Throwing)"},
 			{"meleeDamage", "GetDamage(DamageClass.Melee)"},
-			{"minionDamage", "GetDamage(DamageClass.Summon)"},
+			{"minionDamage", "GetDamage(DamageClass.Summon)"}
 		};
 
 		public static readonly Dictionary<string, string> MethodsToRename = new Dictionary<string, string>
 		{
 			{"Initialize", "OnWorldLoad"},
 			{"Save", "SaveWorldData"},
-			{"Load", "LoadWorldData"}
+			{"Load", "LoadWorldData"},
+			{"NewRightClick", "RightClick"}
 		};
 
 		public static readonly Dictionary<string, string> AnonymousMethodToAddParameter = new Dictionary<string, string>
@@ -44,13 +50,37 @@ namespace tModPorter
 		public static readonly Dictionary<string, string> MemberAccessToRename = new Dictionary<string, string>
 		{
 			{"Main.PlaySound", "SoundEngine.PlaySound"},
+			{"Main.npcTexture", "TextureAssets.Npc"},
+			{"Main.projectileTexture", "TextureAssets.Projectile"},
+			{"item.owner", "Item.playerIndexTheItemIsReservedFor"},
+			{"Main.tileValue", "Main.tileOreFinderPriority"},
+			{"TileObjectData.newTile.HookCheck", "TileObjectData.newTile.HookCheckIfCanPlace"},
+			{"player.showItemIcon2", "player.cursorItemIconID"},
+			{"player.showItemIconText", "player.cursorItemIconText"},
+			{"player.showItemIcon", "player.cursorItemIconEnabled"}
+		};
+
+		public static readonly Dictionary<string, string> AssignmentsToModify = new Dictionary<string, string>
+		{
+			{"item.melee = true", "Item.DamageType = DamageClass.Melee"},
+			{"item.summon = true", "Item.DamageType = DamageClass.Summon"},
+			{"item.thrown = true", "Item.DamageType = DamageClass.Throwing"},
+			{"item.magic = true", "Item.DamageType = DamageClass.Magic"},
+			{"item.ranged = true", "Item.DamageType = DamageClass.Ranged"},
+			{"projectile.melee = true", "Projectile.DamageType = DamageClass.Melee"},
+			{"projectile.minion = true", "Projectile.DamageType = DamageClass.Summon"},
+			{"projectile.thrown = true", "Projectile.DamageType = DamageClass.Throwing"},
+			{"projectile.magic = true", "Projectile.DamageType = DamageClass.Magic"},
+			{"projectile.ranged = true", "Projectile.DamageType = DamageClass.Ranged"}
 		};
 
 		// The using must contain a space before the directive
 		public static readonly Dictionary<string, string> NameAddUsing = new Dictionary<string, string>
 		{
 			{"SoundEngine.PlaySound", " Terraria.Audio"},
-			{" GameConfiguration configuration", " Terraria.IO"}
+			{" GameConfiguration configuration", " Terraria.IO"},
+			{"TextureAssets.Npc", " Terraria.GameContent"},
+			{"TextureAssets.Projectile", " Terraria.GameContent"}
 		};
 		public List<string> UsingsToAdd = new List<string>();
 
@@ -107,7 +137,11 @@ namespace tModPorter
 			{
 				if (AnonymousMethodToAddParameter.Any(p => parameter.ToString().Contains(p.Key)))
 				{
-					var newIdentifier = SyntaxFactory.Identifier(AnonymousMethodToAddParameter.First(p => parameter.ToString().Contains(p.Key)).Value);
+					var newParameter = AnonymousMethodToAddParameter.First(p => parameter.ToString().Contains(p.Key));
+					var newIdentifier = SyntaxFactory.Identifier(newParameter.Value);
+
+					if (node.ParameterList.Parameters.Any(p => p.ToString() == newParameter.Value.Trim()))
+						return base.VisitAnonymousMethodExpression(node);
 
 					if (NameAddUsing.TryGetValue(newIdentifier.ToString(), out string newUsing))
 					{
@@ -147,6 +181,16 @@ namespace tModPorter
 			}
 
 			return base.VisitMemberAccessExpression(node);
+		}
+
+		public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+		{
+			if (AssignmentsToModify.TryGetValue(node.ToString().ToLower(), out string newAssignment))
+			{
+				return SyntaxFactory.IdentifierName(newAssignment).WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+			}
+
+			return base.VisitAssignmentExpression(node);
 		}
 
 		public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)

@@ -1,8 +1,10 @@
 ﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,6 +15,16 @@ namespace tModPorter
 {
 	class Program
 	{
+		public static readonly Dictionary<Regex, string> RegexToRun = new Dictionary<Regex, string>
+		{
+			{new Regex(@"Mod.Find<(.+)>(\("".+"".*?\){1,})"), @"Mod.Find<$1>$2.Type"},
+			{new Regex(@"Mod.Find<(.+)>(\("".+"".*?\))\)\.Type;"), @"Mod.Find<$1>$2.Type);"},
+			{new Regex(@"Mod.GetBackgroundSlot\(""(.+)""\)"), @"Mod.GetBackgroundSlot(""$1.rawimg"")"},
+			{new Regex(@"TextureAssets\.(.+?\[.+?\])(?!\.Value)"), @"TextureAssets.$1.Value"},
+			{new Regex(@"Mod.GetTexture(\(.+?\))"), @"Mod.GetTexture$1.Value"},
+			{new Regex(@"ModContent.GetTexture(\(.+?\))"), @"ModContent.GetTexture$1.Value"}
+		};
+
 		static async Task Main(string[] args)
 		{
 			// Attempt to set the version of MSBuild.
@@ -51,17 +63,26 @@ namespace tModPorter
 					var rootNode = await root.GetRootAsync();
 
 					var rewriter = new PropertyRewriter(await document.GetSemanticModelAsync());
-					var result = rewriter.Visit(rootNode);
-					var lastUsing = result.ChildNodes().OfType<UsingDirectiveSyntax>().Last();
+					var result = rewriter.Visit(rootNode) as CompilationUnitSyntax;
+					//var lastUsing = result.ChildNodes().OfType<UsingDirectiveSyntax>().Last();
 
 					// Add the using statements required
 					foreach (string usingToAdd in rewriter.UsingsToAdd)
 					{
-						result = result.InsertNodesAfter(lastUsing, new[]
-						{
-							SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(usingToAdd))
-						});
+						result = result.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(usingToAdd)).WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+						//result = result.InsertNodesAfter(lastUsing, new[]
+						//{
+						//	SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(usingToAdd))
+						//});
 					}
+
+					var fullStringResult = result.ToFullString();
+					foreach (var regex in RegexToRun)
+					{
+						fullStringResult = regex.Key.Replace(fullStringResult, regex.Value);
+					}
+
+					result = await CSharpSyntaxTree.ParseText(fullStringResult).GetRootAsync() as CompilationUnitSyntax;
 
 					if (!result.IsEquivalentTo(rootNode))
 					{
