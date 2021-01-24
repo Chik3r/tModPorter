@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -80,7 +81,10 @@ namespace tModPorter
 			{"SoundEngine.PlaySound", " Terraria.Audio"},
 			{" GameConfiguration configuration", " Terraria.IO"},
 			{"TextureAssets.Npc", " Terraria.GameContent"},
-			{"TextureAssets.Projectile", " Terraria.GameContent"}
+			{"TextureAssets.Projectile", " Terraria.GameContent"},
+			{"TileID.Sets.DisableSmartCursor[Type]", " Terraria.ID"},
+			{"TileID.Sets.TreeSapling[Type]", " Terraria.ID"},
+			{"TileID.Sets.Torch[Type]", " Terraria.ID"}
 		};
 		public List<string> UsingsToAdd = new List<string>();
 
@@ -106,6 +110,9 @@ namespace tModPorter
 			return base.VisitIdentifierName(node);
 		}
 
+		private Regex _addXRegex = new Regex(@".+(\.Add\w+\(.+\))");
+		private Regex _setResultRegex = new Regex(@".+\.SetResult\((.+?)(?:,\s(\d+))*\);");
+
 		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
 		{
 			// Change return type of UseItem to bool?
@@ -125,6 +132,61 @@ namespace tModPorter
 					var identifier = SyntaxFactory.Identifier(leading, newIdentifier, trailing);
 					return node.WithIdentifier(identifier);
 				}
+			}
+
+			if (node.Identifier.Text == "AddRecipes" && node.Body.Statements.Count != 0)
+			{
+				var leading = node.Body.Statements.First().GetLeadingTrivia();
+				SyntaxList<StatementSyntax> newStatements = new SyntaxList<StatementSyntax>();
+				//ExpressionSyntax recipeExpression = null;
+
+				string expression = "";
+				int resultAmount = 1;
+				string result = null;
+
+				foreach (StatementSyntax statement in node.Body.Statements)
+				{
+					// If the statement is "recipe.AddX(a)", add it to the expression
+					Match addMatch = _addXRegex.Match(statement.ToString());
+					if (addMatch.Success)
+					{
+						expression += addMatch.Groups[1];
+						continue;
+					}
+
+					// If the expression is "recipe.SetResult(a)", change the result and result amount
+					Match setResultMatch = _setResultRegex.Match(statement.ToString());
+					if (setResultMatch.Success)
+					{
+						if (setResultMatch.Groups[1].Value != "this")
+							result = setResultMatch.Groups[1].Value;
+						if (setResultMatch.Groups[2].Value != "")
+							resultAmount = int.Parse(setResultMatch.Groups[2].Value);
+						continue;
+					}
+
+					// Only do the below code if the statement contains "AddRecipe()"
+					if (!statement.ToString().Contains("AddRecipe()"))
+						continue;
+
+					// Parse the expression
+					string parsedExpression = $"CreateRecipe({resultAmount})";
+					parsedExpression += expression;
+					if (string.IsNullOrEmpty(result))
+						parsedExpression += ".Register()";
+					else
+						parsedExpression += $".ReplaceResult({result})";
+
+					// And add a new statement
+					newStatements = newStatements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression(parsedExpression)).WithLeadingTrivia(leading).WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+
+					expression = "";
+					resultAmount = 1;
+					result = "";
+				}
+
+				var modifierBody = node.Body.WithStatements(newStatements);
+				return node.WithBody(modifierBody);
 			}
 
 			return base.VisitMethodDeclaration(node);

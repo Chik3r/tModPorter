@@ -22,7 +22,8 @@ namespace tModPorter
 			{new Regex(@"Mod.GetBackgroundSlot\(""(.+)""\)"), @"Mod.GetBackgroundSlot(""$1.rawimg"")"},
 			{new Regex(@"TextureAssets\.(.+?\[.+?\])(?!\.Value)"), @"TextureAssets.$1.Value"},
 			{new Regex(@"Mod.GetTexture(\(.+?\))"), @"Mod.GetTexture$1.Value"},
-			{new Regex(@"ModContent.GetTexture(\(.+?\))"), @"ModContent.GetTexture$1.Value"}
+			{new Regex(@"ModContent.GetTexture(\(.+?\))"), @"ModContent.GetTexture$1.Value"},
+			{new Regex(@"player\.MinionNPCTargetAim\(\);"), @"player.MinionNPCTargetAim(true)"}
 		};
 
 		static async Task Main(string[] args)
