@@ -5,7 +5,7 @@ namespace tModPorter.Rewriters
 {
 	abstract class BaseRewriter
 	{
-		public RewriterType RewriterType => RewriterType.None;
+		public virtual RewriterType RewriterType => RewriterType.None;
 		private SemanticModel _model;
 		private List<string> _usingList;
 

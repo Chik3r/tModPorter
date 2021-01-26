@@ -10,8 +10,8 @@ namespace tModPorter.Rewriters
 	class MainRewriter : CSharpSyntaxRewriter
 	{
 		private SemanticModel _model;
-		private List<string> _usingList = new();
-		private Lookup<RewriterType, BaseRewriter> _rewriterLookup;
+		private readonly List<string> _usingList = new();
+		private readonly ILookup<RewriterType, BaseRewriter> _rewriterLookup;
 
 		public MainRewriter(SemanticModel model)
 		{
@@ -21,6 +21,9 @@ namespace tModPorter.Rewriters
 			var types = AppDomain.CurrentDomain.GetAssemblies()
 				.SelectMany(a => a.GetTypes())
 				.Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
+
+			var rewriters = types.Select(type => (BaseRewriter) Activator.CreateInstance(type, new object[] {_model, _usingList})).ToList();
+			_rewriterLookup = rewriters.ToLookup(r => r.RewriterType);
 		}
 
 		private SyntaxNode CallRewriters(RewriterType type, SyntaxNode node)
