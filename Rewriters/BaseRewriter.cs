@@ -6,7 +6,7 @@ namespace tModPorter.Rewriters
 	abstract class BaseRewriter
 	{
 		public virtual RewriterType RewriterType => RewriterType.None;
-		private SemanticModel _model;
+		internal SemanticModel _model;
 		private List<string> _usingList;
 
 		public BaseRewriter(SemanticModel model, List<string> UsingList)
@@ -21,6 +21,12 @@ namespace tModPorter.Rewriters
 		{
 			if (!_usingList.Contains(newUsing.Trim()))
 				_usingList.Add(newUsing.Trim());
+		}
+
+		protected bool HasSymbol(SyntaxNode node, out ISymbol symbol)
+		{
+			symbol = _model.GetSymbolInfo(node).Symbol;
+			return symbol != null;
 		}
 	}
 }

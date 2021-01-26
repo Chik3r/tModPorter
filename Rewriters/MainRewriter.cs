@@ -48,25 +48,25 @@ namespace tModPorter.Rewriters
 		#region Visit Nodes
 
 		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) =>
-			CallRewriters(RewriterType.AnonymousMethod, node);
+			base.VisitAnonymousMethodExpression((AnonymousMethodExpressionSyntax) CallRewriters(RewriterType.AnonymousMethod, node));
 
 		public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node) =>
-			CallRewriters(RewriterType.Assignment, node);
+			base.VisitAssignmentExpression((AssignmentExpressionSyntax) CallRewriters(RewriterType.Assignment, node));
 
-		public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node) => 
-			CallRewriters(RewriterType.Identifier, node);
+		public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node) =>
+			base.VisitIdentifierName((IdentifierNameSyntax) CallRewriters(RewriterType.Identifier, node));
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node) =>
-			CallRewriters(RewriterType.Invocation, node);
+			base.VisitInvocationExpression((InvocationExpressionSyntax) CallRewriters(RewriterType.Invocation, node));
 
 		public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node) =>
-			CallRewriters(RewriterType.MemberAccess, node);
+			base.VisitMemberAccessExpression((MemberAccessExpressionSyntax) CallRewriters(RewriterType.MemberAccess, node));
 
-		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node) => 
-			CallRewriters(RewriterType.Method, node);
+		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node) =>
+			base.VisitMethodDeclaration((MethodDeclarationSyntax) CallRewriters(RewriterType.Method, node));
 
 		public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) =>
-			CallRewriters(RewriterType.UsingDirective, node);
+			base.VisitUsingDirective((UsingDirectiveSyntax) CallRewriters(RewriterType.UsingDirective, node));
 
 		#endregion
 	}

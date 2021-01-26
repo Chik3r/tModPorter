@@ -16,12 +16,8 @@ namespace tModPorter.Rewriters
 		{
 			UsingDirectiveSyntax nodeSyntax = node as UsingDirectiveSyntax;
 			if (nodeSyntax.Name.ToString() == "Terraria.World.Generation")
-			{
-				Console.WriteLine("Found a thingy! - " + nodeSyntax.Name);
 				return nodeSyntax.WithName(IdentifierName("Terraria.WorldBuilding"));
-			}
 
-			//Console.WriteLine($"Processing: {node}");
 			return base.VisitNode(node);
 		}
 	}
