@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using tModPorter.Rewriters;
 using static System.Console;
 
 namespace tModPorter
@@ -63,6 +64,10 @@ namespace tModPorter
 
 					var rootNode = await root.GetRootAsync();
 
+					var rewriter = new MainRewriter(await document.GetSemanticModelAsync());
+					var a = rewriter.Visit(rootNode) as CompilationUnitSyntax;
+
+					/*
 					var rewriter = new PropertyRewriter(await document.GetSemanticModelAsync());
 					var result = rewriter.Visit(rootNode) as CompilationUnitSyntax;
 					//var lastUsing = result.ChildNodes().OfType<UsingDirectiveSyntax>().Last();
@@ -84,6 +89,7 @@ namespace tModPorter
 					}
 
 					result = await CSharpSyntaxTree.ParseText(fullStringResult).GetRootAsync() as CompilationUnitSyntax;
+					
 
 					if (!result.IsEquivalentTo(rootNode))
 					{
@@ -91,6 +97,7 @@ namespace tModPorter
 						File.WriteAllText(document.FilePath,
 							result.ToFullString());
 					}
+					*/
 				}
 			}
 		}
