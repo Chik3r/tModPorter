@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace tModPorter.Rewriters
 {
@@ -17,7 +16,17 @@ namespace tModPorter.Rewriters
 			_usingList = UsingList;
 		}
 
-		public virtual SyntaxNode VisitNode(SyntaxNode node) => node;
+		/// <summary>
+		/// Override this method to modify a node. The type of node modified depends on <see cref="RewriterType"/>
+		/// </summary>
+		/// <param name="node">The original node</param>
+		/// <param name="finalNode">The modified node</param>
+		/// <returns>Return <see langword="true" /> if 'base.VisitX()' should be called, return false if not</returns>
+		public virtual bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		{
+			finalNode = node;
+			return true;
+		}
 
 		protected void AddUsing(string newUsing)
 		{
@@ -35,11 +44,11 @@ namespace tModPorter.Rewriters
 			}
 			catch
 			{
-				// If it throws an error, hope it was because the node was changed and return true
+				// If it throws an error, hope it was because the node was changed and return false
 				// TODO: Find a way to get the symbol even after changing the node
 				Console.WriteLine("Symbol not found on node: " + node);
 				symbol = null;
-				return true;
+				return false;
 			}
 		}
 	}

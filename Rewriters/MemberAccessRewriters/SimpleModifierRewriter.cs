@@ -15,7 +15,7 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 
 		public sealed override RewriterType RewriterType => RewriterType.MemberAccess;
 
-		public sealed override SyntaxNode VisitNode(SyntaxNode node)
+		public sealed override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
 		{
 			var nodeSyntax = (MemberAccessExpressionSyntax) node;
 			if (nodeSyntax.Name.ToString() == OldModifier && !HasSymbol(nodeSyntax, out _))
@@ -26,9 +26,12 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 					nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetCritChance({NewModifier})"));
 
 				nodeSyntax = nodeSyntax.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+				finalNode = nodeSyntax;
+				return false;
 			}
 
-			return nodeSyntax;
+			finalNode = nodeSyntax;
+			return true;
 		}
 	}
 

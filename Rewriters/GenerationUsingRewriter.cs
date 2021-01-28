@@ -12,13 +12,14 @@ namespace tModPorter.Rewriters
 
 		public override RewriterType RewriterType => RewriterType.UsingDirective;
 
-		public override SyntaxNode VisitNode(SyntaxNode node)
+		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
 		{
 			UsingDirectiveSyntax nodeSyntax = node as UsingDirectiveSyntax;
+			finalNode = node;
 			if (nodeSyntax.Name.ToString() == "Terraria.World.Generation")
-				return nodeSyntax.WithName(IdentifierName("Terraria.WorldBuilding"));
+				finalNode = nodeSyntax.WithName(IdentifierName("Terraria.WorldBuilding"));
 
-			return base.VisitNode(node);
+			return true;
 		}
 	}
 }

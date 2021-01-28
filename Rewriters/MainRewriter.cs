@@ -26,14 +26,16 @@ namespace tModPorter.Rewriters
 			_rewriterLookup = rewriters.ToLookup(r => r.RewriterType);
 		}
 
-		private SyntaxNode CallRewriters(RewriterType type, SyntaxNode node)
+		private bool CallRewriters(RewriterType type, SyntaxNode node, out SyntaxNode finalNode)
 		{
+			bool callBaseVisit = true;
 			foreach (var rewriter in _rewriterLookup[type])
 			{
-				node = rewriter.VisitNode(node);
+				callBaseVisit &= rewriter.VisitNode(node, out node);
 			}
+			finalNode = node;
 
-			return node;
+			return callBaseVisit;
 		}
 
 		internal CompilationUnitSyntax AddUsings(CompilationUnitSyntax syntax)
@@ -48,25 +50,39 @@ namespace tModPorter.Rewriters
 		#region Visit Nodes
 
 		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) =>
-			base.VisitAnonymousMethodExpression((AnonymousMethodExpressionSyntax) CallRewriters(RewriterType.AnonymousMethod, node));
+			CallRewriters(RewriterType.AnonymousMethod, node, out var finalNode)
+				? base.VisitAnonymousMethodExpression((AnonymousMethodExpressionSyntax) finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node) =>
-			base.VisitAssignmentExpression((AssignmentExpressionSyntax) CallRewriters(RewriterType.Assignment, node));
+			CallRewriters(RewriterType.Assignment, node, out var finalNode)
+				? base.VisitAssignmentExpression((AssignmentExpressionSyntax)finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node) =>
-			base.VisitIdentifierName((IdentifierNameSyntax) CallRewriters(RewriterType.Identifier, node));
+			CallRewriters(RewriterType.Identifier, node, out var finalNode)
+				? base.VisitIdentifierName((IdentifierNameSyntax)finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node) =>
-			base.VisitInvocationExpression((InvocationExpressionSyntax) CallRewriters(RewriterType.Invocation, node));
+			CallRewriters(RewriterType.Invocation, node, out var finalNode)
+				? base.VisitInvocationExpression((InvocationExpressionSyntax)finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node) =>
-			base.VisitMemberAccessExpression((MemberAccessExpressionSyntax) CallRewriters(RewriterType.MemberAccess, node));
+			CallRewriters(RewriterType.MemberAccess, node, out var finalNode)
+				? base.VisitMemberAccessExpression((MemberAccessExpressionSyntax)finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node) =>
-			base.VisitMethodDeclaration((MethodDeclarationSyntax) CallRewriters(RewriterType.Method, node));
+			CallRewriters(RewriterType.Method, node, out var finalNode)
+				? base.VisitMethodDeclaration((MethodDeclarationSyntax)finalNode)
+				: finalNode;
 
 		public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) =>
-			base.VisitUsingDirective((UsingDirectiveSyntax) CallRewriters(RewriterType.UsingDirective, node));
+			CallRewriters(RewriterType.UsingDirective, node, out var finalNode)
+				? base.VisitUsingDirective((UsingDirectiveSyntax)finalNode)
+				: finalNode;
 
 		#endregion
 	}
