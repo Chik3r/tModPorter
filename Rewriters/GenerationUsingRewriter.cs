@@ -6,9 +6,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters
 {
-	class TestUsingRewriter : BaseRewriter
+	class GenerationUsingRewriter : BaseRewriter
 	{
-		public TestUsingRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public GenerationUsingRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
 
 		public override RewriterType RewriterType => RewriterType.UsingDirective;
 

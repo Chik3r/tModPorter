@@ -16,9 +16,7 @@ namespace tModPorter.Rewriters.IdentifierRewriters
 		public sealed override SyntaxNode VisitNode(SyntaxNode node)
 		{
 			if (node.ToString() == OldIdentifier && !HasSymbol(node, out _))
-			{
 				return IdentifierName(NewIdentifier).WithTrailingTrivia(node.GetTrailingTrivia()).WithLeadingTrivia(node.GetLeadingTrivia());
-			}
 
 			return base.VisitNode(node);
 		}

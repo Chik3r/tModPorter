@@ -71,8 +71,8 @@ namespace tModPorter
 					if (!result.IsEquivalentTo(rootNode))
 					{
 						WriteLine("MODIFIED!!! -> " + document.FilePath);
-						//File.WriteAllText(document.FilePath,
-						//	result.ToFullString());
+						File.WriteAllText(document.FilePath,
+							result.ToFullString());
 					}
 				}
 			}
