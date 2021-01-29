@@ -28,6 +28,13 @@ namespace tModPorter.Rewriters
 
 		private bool CallRewriters(RewriterType type, SyntaxNode node, out SyntaxNode finalNode)
 		{
+			// Uncomment this if you only want to port identifiers like "npc" or "item"
+			//if (type != RewriterType.Identifier)
+			//{
+			//	finalNode = node;
+			//	return true;
+			//}
+
 			bool callBaseVisit = true;
 			foreach (var rewriter in _rewriterLookup[type])
 			{

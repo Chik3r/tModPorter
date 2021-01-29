@@ -54,6 +54,7 @@ namespace tModPorter.Rewriters.InvocationRewriters
 				var newMember = MemberAccessExpression(memberAccess.Kind(), newNode, IdentifierName("Type"));
 				finalNode = newMember;
 
+				// Here we are returning false because we are returning a different kind of node
 				return false;
 			}
 
