@@ -28,7 +28,9 @@ namespace tModPorter.Rewriters.InvocationRewriters
 
 		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
 		{
-			var nodeSyntax = (InvocationExpressionSyntax) node;
+			if (node is not InvocationExpressionSyntax nodeSyntax)
+				return base.VisitNode(node, out finalNode);
+
 			finalNode = node;
 
 			if (nodeSyntax.Expression is not MemberAccessExpressionSyntax memberAccess)

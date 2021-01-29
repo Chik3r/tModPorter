@@ -14,7 +14,9 @@ namespace tModPorter.Rewriters
 
 		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
 		{
-			UsingDirectiveSyntax nodeSyntax = node as UsingDirectiveSyntax;
+			if (node is not UsingDirectiveSyntax nodeSyntax)
+				return base.VisitNode(node, out finalNode);
+					
 			finalNode = node;
 			if (nodeSyntax.Name.ToString() == "Terraria.World.Generation")
 				finalNode = nodeSyntax.WithName(IdentifierName("Terraria.WorldBuilding"));

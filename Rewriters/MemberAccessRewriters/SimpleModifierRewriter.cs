@@ -17,7 +17,9 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 
 		public sealed override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
 		{
-			var nodeSyntax = (MemberAccessExpressionSyntax) node;
+			if (node is not MemberAccessExpressionSyntax nodeSyntax)
+				return base.VisitNode(node, out finalNode);
+
 			if (nodeSyntax.Name.ToString() == OldModifier && !HasSymbol(nodeSyntax, out _))
 			{
 				if (ModifierType == ModifierType.Damage)
