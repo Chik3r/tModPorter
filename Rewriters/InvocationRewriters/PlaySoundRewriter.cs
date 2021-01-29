@@ -27,10 +27,5 @@ namespace tModPorter.Rewriters.InvocationRewriters
 
 			return true;
 		}
-
-		void a(int i)
-		{
-
-		}
 	}
 }
