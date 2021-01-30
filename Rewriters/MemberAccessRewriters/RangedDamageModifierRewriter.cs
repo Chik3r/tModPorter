@@ -5,19 +5,21 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 {
 	class RangedDamageModifierRewriter : SimpleModifierRewriter
 	{
-		public RangedDamageModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public RangedDamageModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
-		public override string NewModifier => "DamageClass.Ranged";
-		public override string OldModifier => "rangedDamage";
-		public override ModifierType ModifierType => ModifierType.Damage;
+		protected override string NewModifier => "DamageClass.Ranged";
+		protected override string OldModifier => "rangedDamage";
+		protected override ModifierType ModifierType => ModifierType.Damage;
 	}
 
 	class RangedCritModifierRewriter : SimpleModifierRewriter
 	{
-		public RangedCritModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public RangedCritModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
-		public override string NewModifier => "DamageClass.Ranged";
-		public override string OldModifier => "rangedCrit";
-		public override ModifierType ModifierType => ModifierType.CritChance;
+		protected override string NewModifier => "DamageClass.Ranged";
+		protected override string OldModifier => "rangedCrit";
+		protected override ModifierType ModifierType => ModifierType.CritChance;
 	}
 }

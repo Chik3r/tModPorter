@@ -9,17 +9,20 @@ namespace tModPorter.Rewriters.IdentifierRewriters
 		public abstract string OldIdentifier { get; }
 		public abstract string NewIdentifier { get; }
 
-		protected SimpleIdentifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		protected SimpleIdentifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public sealed override RewriterType RewriterType => RewriterType.Identifier;
 
-		public sealed override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public sealed override void VisitNode(SyntaxNode node)
 		{
-			finalNode = node;
 			if (node.ToString() == OldIdentifier && !HasSymbol(node, out _))
-				finalNode = IdentifierName(NewIdentifier).WithTrailingTrivia(node.GetTrailingTrivia()).WithLeadingTrivia(node.GetLeadingTrivia());
+				AddNodeToRewrite(node);
+		}
 
-			return true;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			return IdentifierName(NewIdentifier).WithExtraTrivia(node);
 		}
 	}
 }

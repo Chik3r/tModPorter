@@ -65,7 +65,10 @@ namespace tModPorter
 					var rootNode = await root.GetRootAsync();
 
 					var rewriter = new MainRewriter(await document.GetSemanticModelAsync());
-					var result = rewriter.Visit(rootNode) as CompilationUnitSyntax;
+					// Visit all the nodes to know what to change
+					rewriter.Visit(rootNode);
+					// Modify all nodes
+					var result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
 					result = rewriter.AddUsings(result);
 
 					if (!result.IsEquivalentTo(rootNode))

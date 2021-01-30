@@ -5,19 +5,21 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 {
 	class ThrowingDamageModifierRewriter : SimpleModifierRewriter
 	{
-		public ThrowingDamageModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public ThrowingDamageModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
-		public override string NewModifier => "DamageClass.Throwing";
-		public override string OldModifier => "thrownDamage";
-		public override ModifierType ModifierType => ModifierType.Damage;
+		protected override string NewModifier => "DamageClass.Throwing";
+		protected override string OldModifier => "thrownDamage";
+		protected override ModifierType ModifierType => ModifierType.Damage;
 	}
 
 	class ThrowingCritModifierRewriter : SimpleModifierRewriter
 	{
-		public ThrowingCritModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public ThrowingCritModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
-		public override string NewModifier => "DamageClass.Throwing";
-		public override string OldModifier => "thrownCrit";
-		public override ModifierType ModifierType => ModifierType.CritChance;
+		protected override string NewModifier => "DamageClass.Throwing";
+		protected override string OldModifier => "thrownCrit";
+		protected override ModifierType ModifierType => ModifierType.CritChance;
 	}
 }

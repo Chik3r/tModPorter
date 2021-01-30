@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -9,75 +8,78 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters
 {
 	class AddRecipesRewriter : BaseRewriter
 	{
-		public AddRecipesRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public AddRecipesRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.Method;
 
-		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public override void VisitNode(SyntaxNode node)
 		{
 			if (node is not MethodDeclarationSyntax nodeMethod)
-				return base.VisitNode(node, out finalNode);
+				return;
 
-			if (nodeMethod.Body != null && nodeMethod.Identifier.Text == "AddRecipes" && nodeMethod.Body.Statements.Count != 0)
+			// Make sure the body isn't null, that the method name is "AddRecipes", that it has statements, and that it hasn't already been ported
+			if (nodeMethod.Body != null && nodeMethod.Identifier.Text == "AddRecipes" 
+			                            && nodeMethod.Body.Statements.Count != 0 && !nodeMethod.Body.ToString().Contains("CreateRecipe"))
+				AddNodeToRewrite(node);
+		}
+
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			var nodeMethod = (MethodDeclarationSyntax) node;
+			var leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
+			var newStatements = new SyntaxList<StatementSyntax>();
+
+			string expression = "";
+			int resultAmount = 1;
+			string result = null;
+
+			foreach (StatementSyntax statementSyntax in nodeMethod.Body.Statements)
 			{
-				var leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
-				var newStatements = new SyntaxList<StatementSyntax>();
+				if (statementSyntax is not ExpressionStatementSyntax
+					{Expression: InvocationExpressionSyntax invocationExpressionSyntax})
+					continue;
 
-				string expression = "";
-				int resultAmount = 1;
-				string result = null;
+				if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessSyntax)
+					continue;
 
-				foreach (StatementSyntax statementSyntax in nodeMethod.Body.Statements)
+				// Parse the existing recipe
+				switch (memberAccessSyntax.Name.ToString())
 				{
-					if (statementSyntax is not ExpressionStatementSyntax
-						{Expression: InvocationExpressionSyntax invocationExpressionSyntax})
-						continue;
+					case "AddIngredient":
+					case "AddTile":
+					case "AddRecipeGroup":
+						var splitExpression = invocationExpressionSyntax.ToString().Split('.', 2);
+						expression += "." + splitExpression[1];
+						break;
+					case "SetResult":
+						var arguments = invocationExpressionSyntax.ArgumentList.Arguments.Select(a => a.ToString()).ToArray();
 
-					if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessSyntax)
-						continue;
+						if (arguments[0] != "this")
+							result = arguments[0];
+						if (arguments.Length == 2)
+							resultAmount = int.Parse(arguments[1]);
+						break;
+					case "AddRecipe":
+						var parsedExpression = $"CreateRecipe({resultAmount})" + expression;
 
-					// Parse the existing recipe
-					switch (memberAccessSyntax.Name.ToString())
-					{
-						case "AddIngredient":
-						case "AddTile":
-						case "AddRecipeGroup":
-							var splitExpression = invocationExpressionSyntax.ToString().Split('.', 2);
-							expression += "." + splitExpression[1];
-							break;
-						case "SetResult":
-							var arguments = invocationExpressionSyntax.ArgumentList.Arguments.Select(a => a.ToString()).ToArray();
+						if (string.IsNullOrEmpty(result))
+							parsedExpression += ".Register()";
+						else
+							parsedExpression += $".ReplaceResult({result})";
 
-							if (arguments[0] != "this")
-								result = arguments[0];
-							if (arguments.Length == 2)
-								resultAmount = int.Parse(arguments[1]);
-							break;
-						case "AddRecipe":
-							var parsedExpression = $"CreateRecipe({resultAmount})" + expression;
+						newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression))
+							.WithLeadingTrivia(leading).WithTrailingTrivia(ElasticCarriageReturnLineFeed));
 
-							if (string.IsNullOrEmpty(result))
-								parsedExpression += ".Register()";
-							else
-								parsedExpression += $".ReplaceResult({result})";
-
-							newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression))
-								.WithLeadingTrivia(leading).WithTrailingTrivia(ElasticCarriageReturnLineFeed));
-
-							expression = "";
-							resultAmount = 1;
-							result = "";
-							break;
-					}
+						expression = "";
+						resultAmount = 1;
+						result = "";
+						break;
 				}
-
-				var modifierBody = nodeMethod.Body.WithStatements(newStatements);
-				finalNode = nodeMethod.WithBody(modifierBody);
-				return false;
 			}
 
-			finalNode = nodeMethod;
-			return true;
+			var modifierBody = nodeMethod.Body.WithStatements(newStatements);
+			return nodeMethod.WithBody(modifierBody);
 		}
 	}
 }

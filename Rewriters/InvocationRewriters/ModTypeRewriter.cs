@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -7,7 +8,8 @@ namespace tModPorter.Rewriters.InvocationRewriters
 {
 	class ModTypeRewriter : BaseRewriter
 	{
-		public ModTypeRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public ModTypeRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.Invocation;
 
@@ -26,41 +28,39 @@ namespace tModPorter.Rewriters.InvocationRewriters
 			{"WallType", "ModWall"},
 		};
 
-		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public override void VisitNode(SyntaxNode node)
 		{
 			if (node is not InvocationExpressionSyntax nodeSyntax)
-				return base.VisitNode(node, out finalNode);
-
-			finalNode = node;
+				return;
 
 			if (nodeSyntax.Expression is not MemberAccessExpressionSyntax memberAccess)
-				return true;
+				return;
 
 			if (HasSymbol(memberAccess.Name, out _))
-				return true;
+				return;
 
-			foreach (var modType in _modTypes)
-			{
-				if (memberAccess.Name.ToString() != modType.Key) 
-					continue;
+			if (_modTypes.Any(m => m.Key == memberAccess.Name.ToString()))
+				AddNodeToRewrite(nodeSyntax);
+		}
 
-				// Replace 'mod' with 'Mod'
-				if (memberAccess.Expression.ToString() == "mod")
-					memberAccess = memberAccess.WithExpression(IdentifierName("Mod"));
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			var nodeSyntax = (InvocationExpressionSyntax) node;
+			var memberAccess = (MemberAccessExpressionSyntax) nodeSyntax.Expression;
 
-				// Replace the old 'XType' with the new 'Find<XType>'
-				var newMemberExpression = memberAccess.WithName(IdentifierName($"Find<{modType.Value}>"));
-				var newNode = nodeSyntax.WithExpression(newMemberExpression);
+			var modType = _modTypes.First(m => m.Key == memberAccess.Name.ToString());
 
-				// Add .Type at the end
-				var newMember = MemberAccessExpression(memberAccess.Kind(), newNode, IdentifierName("Type"));
-				finalNode = newMember;
+			// Replace 'mod' with 'Mod'
+			if (memberAccess.Expression.ToString() == "mod")
+				memberAccess = memberAccess.WithExpression(IdentifierName("Mod"));
 
-				// Here we are returning false because we are returning a different kind of node
-				return false;
-			}
+			// Replace the old 'XType' with the new 'Find<XType>'
+			var newMemberExpression = memberAccess.WithName(IdentifierName($"Find<{modType.Value}>"));
+			var newNode = nodeSyntax.WithExpression(newMemberExpression);
 
-			return true;
+			// Add .Type at the end
+			var newMember = MemberAccessExpression(memberAccess.Kind(), newNode, IdentifierName("Type"));
+			return newMember;
 		}
 	}
 }

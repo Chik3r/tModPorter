@@ -7,25 +7,22 @@ namespace tModPorter.Rewriters.InvocationRewriters
 {
 	class PlaySoundRewriter : BaseRewriter
 	{
-		public PlaySoundRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public PlaySoundRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.Invocation;
 
-		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public override void VisitNode(SyntaxNode node)
 		{
-			finalNode = node;
-
-			if (node is InvocationExpressionSyntax invocation && invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-			{
+			if (node is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess})
 				if (memberAccess.ToString() == "Main.PlaySound")
-				{
-					finalNode = invocation.WithExpression(IdentifierName("SoundEngine.PlaySound")
-						.WithLeadingTrivia(invocation.GetLeadingTrivia()).WithTrailingTrivia(invocation.GetTrailingTrivia()));
-					AddUsing("Terraria.Audio");
-				}
-			}
+					AddNodeToRewrite(memberAccess);
+		}
 
-			return true;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			AddUsing("Terraria.Audio");
+			return IdentifierName("SoundEngine.PlaySound").WithExtraTrivia(node);
 		}
 	}
 }

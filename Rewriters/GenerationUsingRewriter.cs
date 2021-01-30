@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -8,20 +7,23 @@ namespace tModPorter.Rewriters
 {
 	class GenerationUsingRewriter : BaseRewriter
 	{
-		public GenerationUsingRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public GenerationUsingRewriter(SemanticModel model, List<string> usingList, 
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.UsingDirective;
 
-		public override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public override void VisitNode(SyntaxNode node)
 		{
 			if (node is not UsingDirectiveSyntax nodeSyntax)
-				return base.VisitNode(node, out finalNode);
-					
-			finalNode = node;
+				return;
+			
 			if (nodeSyntax.Name.ToString() == "Terraria.World.Generation")
-				finalNode = nodeSyntax.WithName(IdentifierName("Terraria.WorldBuilding"));
+				AddNodeToRewrite(nodeSyntax.Name);
+		}
 
-			return true;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			return IdentifierName("Terraria.WorldBuilding");
 		}
 	}
 }

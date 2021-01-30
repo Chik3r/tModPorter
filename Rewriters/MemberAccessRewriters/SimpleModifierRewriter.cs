@@ -7,33 +7,35 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 {
 	abstract class SimpleModifierRewriter : BaseRewriter
 	{
-		public abstract string NewModifier { get; }
-		public abstract string OldModifier { get; }
-		public abstract ModifierType ModifierType { get; }
-		
-		public SimpleModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		protected abstract string NewModifier { get; }
+		protected abstract string OldModifier { get; }
+		protected abstract ModifierType ModifierType { get; }
+
+		protected SimpleModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public sealed override RewriterType RewriterType => RewriterType.MemberAccess;
 
-		public sealed override bool VisitNode(SyntaxNode node, out SyntaxNode finalNode)
+		public sealed override void VisitNode(SyntaxNode node)
 		{
 			if (node is not MemberAccessExpressionSyntax nodeSyntax)
-				return base.VisitNode(node, out finalNode);
+				return;
 
 			if (nodeSyntax.Name.ToString() == OldModifier && !HasSymbol(nodeSyntax, out _))
-			{
-				if (ModifierType == ModifierType.Damage)
-					nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetDamage({NewModifier})"));
-				else
-					nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetCritChance({NewModifier})"));
+				AddNodeToRewrite(nodeSyntax);
+		}
 
-				nodeSyntax = nodeSyntax.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
-				finalNode = nodeSyntax;
-				return false;
-			}
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			var nodeSyntax = (MemberAccessExpressionSyntax) node;
+			if (ModifierType == ModifierType.Damage)
+				nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetDamage({NewModifier})"));
+			else
+				nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetCritChance({NewModifier})"));
 
-			finalNode = nodeSyntax;
-			return true;
+			nodeSyntax = nodeSyntax.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+
+			return nodeSyntax;
 		}
 	}
 

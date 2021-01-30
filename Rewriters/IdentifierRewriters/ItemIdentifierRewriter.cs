@@ -5,7 +5,8 @@ namespace tModPorter.Rewriters.IdentifierRewriters
 {
 	class ItemIdentifierRewriter : SimpleIdentifierRewriter
 	{
-		public ItemIdentifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public ItemIdentifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override string OldIdentifier => "item";
 		public override string NewIdentifier => "Item";

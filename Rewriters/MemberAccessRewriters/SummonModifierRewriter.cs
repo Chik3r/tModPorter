@@ -5,10 +5,11 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 {
 	class SummonDamageModifierRewriter : SimpleModifierRewriter
 	{
-		public SummonDamageModifierRewriter(SemanticModel model, List<string> UsingList) : base(model, UsingList) { }
+		public SummonDamageModifierRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
-		public override string NewModifier => "DamageClass.Summon";
-		public override string OldModifier => "minionDamage";
-		public override ModifierType ModifierType => ModifierType.Damage;
+		protected override string NewModifier => "DamageClass.Summon";
+		protected override string OldModifier => "minionDamage";
+		protected override ModifierType ModifierType => ModifierType.Damage;
 	}
 }
