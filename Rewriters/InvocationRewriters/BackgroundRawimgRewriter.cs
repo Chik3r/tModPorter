@@ -21,7 +21,7 @@ namespace tModPorter.Rewriters.InvocationRewriters
 				return;
 
 			// Add a ArgumentListSyntax to rewrite, if the method is "GetBackgroundSlot", it will always have one argument
-			if (memberAccess.Name.ToString() == "GetBackgroundSlot" && !invocation.ArgumentList.Arguments[0].ToString().EndsWith(".rawimg"))
+			if (memberAccess.Name.ToString() == "GetBackgroundSlot" && !invocation.ArgumentList.Arguments[0].ToString().Contains(".rawimg"))
 				AddNodeToRewrite(invocation.ArgumentList);
 
 			base.VisitNode(node);
