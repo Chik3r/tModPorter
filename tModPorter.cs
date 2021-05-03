@@ -1,20 +1,15 @@
 ﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using tModPorter.Rewriters;
 using static System.Console;
 
 namespace tModPorter
 {
-	class Program
+	class tModPorter
 	{
 		//public static readonly Dictionary<Regex, string> RegexToRun = new Dictionary<Regex, string>
 		//{
@@ -29,35 +24,27 @@ namespace tModPorter
 
 		static async Task Main(string[] args)
 		{
-			// Attempt to set the version of MSBuild.
-			var visualStudioInstances = MSBuildLocator.QueryVisualStudioInstances().ToArray();
-			var instance = visualStudioInstances.Length == 1
-				// If there is only one instance of MSBuild on this machine, set that as the one to use.
-				? visualStudioInstances[0]
-				// Handle selecting the version of MSBuild you want to use.
-				: SelectVisualStudioInstance(visualStudioInstances);
-
-			WriteLine($"Using MSBuild at '{instance.MSBuildPath}' to load projects.");
-
-			// NOTE: Be sure to register an instance with the MSBuildLocator 
-			//       before calling MSBuildWorkspace.Create()
-			//       otherwise, MSBuildWorkspace won't MEF compose.
-			MSBuildLocator.RegisterInstance(instance);
+			MSBuildLocator.RegisterDefaults();
 
 			using (var workspace = MSBuildWorkspace.Create())
 			{
 				// Print message for WorkspaceFailed event to help diagnosing project load failures.
-				workspace.WorkspaceFailed += (o, e) => WriteLine(e.Diagnostic.Message);
+				workspace.WorkspaceFailed += (o, e) =>
+				{
+					ForegroundColor = ConsoleColor.Red;
+					WriteLine(e.Diagnostic.Message);
+					ForegroundColor = ConsoleColor.Gray;
+					ReadKey();
+				};
 
-				var solutionPath = args[0];
-				WriteLine($"Loading solution '{solutionPath}'");
+				var projectPath = GetProjectPath(args);
+				WriteLine($"Loading solution '{projectPath}'");
 
 				// Attach progress reporter so we print projects as they are loaded.
-				var solution = await workspace.OpenSolutionAsync(solutionPath, new ConsoleProgressReporter());
-				WriteLine($"Finished loading solution '{solutionPath}'");
+				var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
+				WriteLine($"Finished loading solution '{projectPath}'");
 
-				foreach (var document in solution.Projects
-					.SelectMany(x => x.Documents))
+				foreach (var document in project.Documents)
 				{
 					var root = await document.GetSyntaxTreeAsync() ??
 					           throw new Exception("No syntax root - " + document.FilePath);
@@ -74,35 +61,39 @@ namespace tModPorter
 					if (!result.IsEquivalentTo(rootNode))
 					{
 						WriteLine("MODIFIED!!! -> " + document.FilePath);
-						File.WriteAllText(document.FilePath,
-							result.ToFullString());
+						File.WriteAllText(document.FilePath, result.ToFullString());
 					}
 				}
 			}
 		}
 
-		private static VisualStudioInstance SelectVisualStudioInstance(VisualStudioInstance[] visualStudioInstances)
+		private static string GetProjectPath(string[] args)
 		{
-			WriteLine("Multiple installs of MSBuild detected please select one:");
-			for (int i = 0; i < visualStudioInstances.Length; i++)
+			// Check if the args have a valid file path
+			if (args.Length > 0 && File.Exists(Path.ChangeExtension(args[0], ".csproj")))
+				return args[0];
+
+			// Ask the user for a path
+			WriteLine("Enter the path to the .csproj of the mod you want to port");
+			string filePath = Path.ChangeExtension(ReadLine(), ".csproj");
+
+			// Continue asking until a valid file is passed
+			while (!File.Exists(filePath))
 			{
-				WriteLine($"Instance {i + 1}");
-				WriteLine($"    Name: {visualStudioInstances[i].Name}");
-				WriteLine($"    Version: {visualStudioInstances[i].Version}");
-				WriteLine($"    MSBuild Path: {visualStudioInstances[i].MSBuildPath}");
+				Clear();
+				ForegroundColor = ConsoleColor.Yellow;
+				WriteLine("The path you entered doesn't exist");
+				ForegroundColor = ConsoleColor.Gray;
+				
+				filePath = Path.ChangeExtension(ReadLine(), ".csproj");
 			}
 
-			while (true)
-			{
-				var userResponse = ReadLine();
-				if (int.TryParse(userResponse, out int instanceNumber) &&
-					instanceNumber > 0 &&
-					instanceNumber <= visualStudioInstances.Length)
-				{
-					return visualStudioInstances[instanceNumber - 1];
-				}
-				WriteLine("Input not accepted, try again.");
-			}
+			// Reset the console
+			ForegroundColor = ConsoleColor.Gray;
+			Clear();
+
+			// Return the path passed in by the user
+			return filePath;
 		}
 
 		private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
