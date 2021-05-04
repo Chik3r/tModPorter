@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using tModPorter.Rewriters;
@@ -44,6 +45,8 @@ namespace tModPorter
 				var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
 				WriteLine($"Finished loading solution '{projectPath}'");
 
+				ProgressBar bar = ProgressBar.StartNew(project.Documents.Count());
+
 				foreach (var document in project.Documents)
 				{
 					var root = await document.GetSyntaxTreeAsync() ??
@@ -60,9 +63,11 @@ namespace tModPorter
 
 					if (!result.IsEquivalentTo(rootNode))
 					{
-						WriteLine("MODIFIED!!! -> " + document.FilePath);
+						// WriteLine("MODIFIED!!! -> " + document.FilePath);
 						File.WriteAllText(document.FilePath, result.ToFullString());
 					}
+
+					bar.Report(1);
 				}
 			}
 		}
