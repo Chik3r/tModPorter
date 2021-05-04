@@ -29,38 +29,37 @@ namespace tModPorter
 		{
 			MSBuildLocator.RegisterDefaults();
 
-			using (MSBuildWorkspace workspace = MSBuildWorkspace.Create())
+			using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+			
+			// Print message for WorkspaceFailed event to help diagnosing project load failures.
+			workspace.WorkspaceFailed += (o, e) =>
 			{
-				// Print message for WorkspaceFailed event to help diagnosing project load failures.
-				workspace.WorkspaceFailed += (o, e) =>
-				{
-					ForegroundColor = ConsoleColor.Red;
-					WriteLine(e.Diagnostic.Message);
-					ForegroundColor = ConsoleColor.Gray;
-					ReadKey();
-				};
+				ForegroundColor = ConsoleColor.Red;
+				WriteLine(e.Diagnostic.Message);
+				ForegroundColor = ConsoleColor.Gray;
+				ReadKey();
+			};
 
-				string projectPath = GetProjectPath(args);
-				WriteLine($"Loading solution '{projectPath}'");
+			string projectPath = GetProjectPath(args);
+			WriteLine($"Loading solution '{projectPath}'");
 
-				// Attach progress reporter so we print projects as they are loaded.
-				Project project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
-				int documentCount = project.Documents.Count();
-				WriteLine($"Finished loading solution '{projectPath}'");
+			// Attach progress reporter so we print projects as they are loaded.
+			Project project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
+			int documentCount = project.Documents.Count();
+			WriteLine($"Finished loading solution '{projectPath}'");
 
-				ProgressBar bar = ProgressBar.StartNew(documentCount);
+			ProgressBar bar = ProgressBar.StartNew(documentCount);
 
-				byte chunkSize = (byte) Math.Min(4, documentCount);
-				int i = 0;
-				IEnumerable<IEnumerable<Document>> chunks = from document in project.Documents
-					group document by i++ % chunkSize
-					into part
-					select part.AsEnumerable();
+			byte chunkSize = (byte) Math.Min(4, documentCount);
+			int i = 0;
+			IEnumerable<IEnumerable<Document>> chunks = from document in project.Documents
+				group document by i++ % chunkSize
+				into part
+				select part.AsEnumerable();
 
-				List<Task> tasks = chunks.Select(chunk => Task.Run(() => ProcessChunk(chunk, bar))).ToList();
+			List<Task> tasks = chunks.Select(chunk => Task.Run(() => ProcessChunk(chunk, bar))).ToList();
 
-				await Task.WhenAll(tasks);
-			}
+			await Task.WhenAll(tasks);
 		}
 
 		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress)
