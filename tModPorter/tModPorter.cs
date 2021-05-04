@@ -14,17 +14,6 @@ namespace tModPorter
 {
 	class tModPorter
 	{
-		//public static readonly Dictionary<Regex, string> RegexToRun = new Dictionary<Regex, string>
-		//{
-		//	{new Regex(@"Mod.Find<(.+)>(\("".+"".*?\){1,})"), @"Mod.Find<$1>$2.Type"},
-		//	{new Regex(@"Mod.Find<(.+)>(\("".+"".*?\))\)\.Type;"), @"Mod.Find<$1>$2.Type);"},
-		//	{new Regex(@"Mod.GetBackgroundSlot\(""(.+)""\)"), @"Mod.GetBackgroundSlot(""$1.rawimg"")"},
-		//	{new Regex(@"TextureAssets\.(.+?\[.+?\])(?!\.Value)"), @"TextureAssets.$1.Value"},
-		//	{new Regex(@"Mod.GetTexture(\(.+?\))"), @"Mod.GetTexture$1.Value"},
-		//	{new Regex(@"ModContent.GetTexture(\(.+?\))"), @"ModContent.GetTexture$1.Value"},
-		//	{new Regex(@"player\.MinionNPCTargetAim\(\);"), @"player.MinionNPCTargetAim(true);"}
-		//};
-
 		static async Task Main(string[] args)
 		{
 			MSBuildLocator.RegisterDefaults();
