@@ -1,9 +1,11 @@
 ﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using tModPorter.Rewriters;
 using static System.Console;
@@ -27,7 +29,7 @@ namespace tModPorter
 		{
 			MSBuildLocator.RegisterDefaults();
 
-			using (var workspace = MSBuildWorkspace.Create())
+			using (MSBuildWorkspace workspace = MSBuildWorkspace.Create())
 			{
 				// Print message for WorkspaceFailed event to help diagnosing project load failures.
 				workspace.WorkspaceFailed += (o, e) =>
@@ -38,38 +40,56 @@ namespace tModPorter
 					ReadKey();
 				};
 
-				var projectPath = GetProjectPath(args);
+				string projectPath = GetProjectPath(args);
 				WriteLine($"Loading solution '{projectPath}'");
 
 				// Attach progress reporter so we print projects as they are loaded.
-				var project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
+				Project project = await workspace.OpenProjectAsync(projectPath, new ConsoleProgressReporter());
+				int documentCount = project.Documents.Count();
 				WriteLine($"Finished loading solution '{projectPath}'");
 
-				ProgressBar bar = ProgressBar.StartNew(project.Documents.Count());
+				ProgressBar bar = ProgressBar.StartNew(documentCount);
 
-				foreach (var document in project.Documents)
-				{
-					var root = await document.GetSyntaxTreeAsync() ??
-					           throw new Exception("No syntax root - " + document.FilePath);
+				byte chunkSize = (byte) Math.Min(4, documentCount);
+				int i = 0;
+				IEnumerable<IEnumerable<Document>> chunks = from document in project.Documents
+					group document by i++ % chunkSize
+					into part
+					select part.AsEnumerable();
 
-					var rootNode = await root.GetRootAsync();
+				List<Task> tasks = chunks.Select(chunk => Task.Run(() => ProcessChunk(chunk, bar))).ToList();
 
-					var rewriter = new MainRewriter(await document.GetSemanticModelAsync());
-					// Visit all the nodes to know what to change
-					rewriter.Visit(rootNode);
-					// Modify all nodes
-					var result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
-					result = rewriter.AddUsings(result);
-
-					if (!result.IsEquivalentTo(rootNode))
-					{
-						// WriteLine("MODIFIED!!! -> " + document.FilePath);
-						File.WriteAllText(document.FilePath, result.ToFullString());
-					}
-
-					bar.Report(1);
-				}
+				await Task.WhenAll(tasks);
 			}
+		}
+
+		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress)
+		{
+			foreach (Document document in chunk) 
+				await ProcessFile(document, progress);
+		}
+
+		private static async Task ProcessFile(Document document, IProgress<int> progress)
+		{
+			SyntaxTree root = await document.GetSyntaxTreeAsync() ??
+			                   throw new Exception("No syntax root - " + document.FilePath);
+
+			SyntaxNode rootNode = await root.GetRootAsync();
+
+			MainRewriter rewriter = new(await document.GetSemanticModelAsync());
+			// Visit all the nodes to know what to change
+			rewriter.Visit(rootNode);
+			// Modify all nodes
+			CompilationUnitSyntax result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
+			result = rewriter.AddUsings(result);
+
+			if (!result.IsEquivalentTo(rootNode))
+			{
+				// WriteLine("MODIFIED!!! -> " + document.FilePath);
+				await File.WriteAllTextAsync(document.FilePath, result.ToFullString());
+			}
+
+			progress.Report(1);
 		}
 
 		private static string GetProjectPath(string[] args)
