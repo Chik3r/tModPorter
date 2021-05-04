@@ -23,9 +23,9 @@ namespace tModPorter
 
         public void Start() => ResetTimer();
 
-        public static ProgressBar StartNew(int maxElements)
+        public static ProgressBar StartNew(int maxElements, byte numberOfBlocks = 16, double animationInterval = 1.0 / 8)
         {
-            ProgressBar bar = new(maxElements);
+            ProgressBar bar = new(maxElements, numberOfBlocks, animationInterval);
             bar.Start();
             return bar;
         }
