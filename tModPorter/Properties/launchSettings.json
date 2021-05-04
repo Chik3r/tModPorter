@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "tModPorter": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\ikerv\\Documents\\My Games\\Terraria\\ModLoader\\Beta\\Mod Sources\\CrystiliumMod_pre\\CrystiliumMod.csproj\""
+    }
+  }
+}
