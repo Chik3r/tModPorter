@@ -1,6 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using tModPorter.Rewriters;
 
 namespace tModPorter.Tests
 {
@@ -20,6 +23,19 @@ namespace tModPorter.Tests
             model = compilation.GetSemanticModel(tree);
 
             return compilation;
+        }
+
+        internal static CompilationUnitSyntax RewriteMultipleNodes(this CompilationUnitSyntax root,
+            IEnumerable<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet)
+        {
+            Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
+            foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in nodeSet)
+            {
+                SyntaxNode newNode = rewriter.RewriteNode(originalNode);
+                nodeDictionary.Add(originalNode, newNode);
+            }
+
+            return root.ReplaceNodes(nodeDictionary.Keys.AsEnumerable(), (n1, n2) => nodeDictionary[n1]);
         }
     }
 }
