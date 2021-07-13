@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters.IdentifierRewriters
 {
-	class PlayerIdentifierRewriter : SimpleIdentifierRewriter
+	public class PlayerIdentifierRewriter : SimpleIdentifierRewriter
 	{
 		public PlayerIdentifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.InvocationRewriters
 {
-	class PlaySoundRewriter : BaseRewriter
+	public class PlaySoundRewriter : BaseRewriter
 	{
 		public PlaySoundRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

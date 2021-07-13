@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters
 {
-	class GenerationUsingRewriter : BaseRewriter
+	public class GenerationUsingRewriter : BaseRewriter
 	{
 		public GenerationUsingRewriter(SemanticModel model, List<string> usingList, 
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

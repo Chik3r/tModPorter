@@ -7,7 +7,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.InvocationRewriters
 {
-	class ModTypeRewriter : BaseRewriter
+	public class ModTypeRewriter : BaseRewriter
 	{
 		public ModTypeRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

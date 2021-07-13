@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.IdentifierRewriters
 {
-	abstract class SimpleIdentifierRewriter : BaseRewriter
+	public abstract class SimpleIdentifierRewriter : BaseRewriter
 	{
 		public abstract string OldIdentifier { get; }
 		public abstract string NewIdentifier { get; }

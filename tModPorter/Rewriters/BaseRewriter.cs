@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters
 {
-	abstract class BaseRewriter
+	public abstract class BaseRewriter
 	{
 		public virtual RewriterType RewriterType => RewriterType.None;
 		protected SemanticModel _model;

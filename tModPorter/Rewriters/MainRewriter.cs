@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace tModPorter.Rewriters
 {
-	class MainRewriter : CSharpSyntaxRewriter
+	public class MainRewriter : CSharpSyntaxRewriter
 	{
 		private SemanticModel _model;
 		private readonly List<string> _usingList = new();

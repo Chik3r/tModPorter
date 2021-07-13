@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters.MemberAccessRewriters
 {
-	class SummonDamageModifierRewriter : SimpleModifierRewriter
+	public class SummonDamageModifierRewriter : SimpleModifierRewriter
 	{
 		public SummonDamageModifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters.MemberAccessRewriters
 {
-	class MagicDamageModifierRewriter : SimpleModifierRewriter
+	public class MagicDamageModifierRewriter : SimpleModifierRewriter
 	{
 		public MagicDamageModifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
@@ -13,7 +13,7 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 		protected override ModifierType ModifierType => ModifierType.Damage;
 	}
 
-	class MagicCritModifierRewriter : SimpleModifierRewriter
+	public class MagicCritModifierRewriter : SimpleModifierRewriter
 	{
 		public MagicCritModifierRewriter(SemanticModel model, List<string> usingList, 
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

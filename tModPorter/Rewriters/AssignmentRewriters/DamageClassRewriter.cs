@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.AssignmentRewriters
 {
-	class DamageClassRewriter : BaseRewriter
+	public class DamageClassRewriter : BaseRewriter
 	{
 		private Dictionary<string, string> _fieldToDamageClass = new()
 		{

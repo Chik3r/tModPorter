@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.MemberAccessRewriters
 {
-	abstract class SimpleModifierRewriter : BaseRewriter
+	public abstract class SimpleModifierRewriter : BaseRewriter
 	{
 		protected abstract string NewModifier { get; }
 		protected abstract string OldModifier { get; }
@@ -39,7 +39,7 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 		}
 	}
 
-	enum ModifierType
+	public enum ModifierType
 	{
 		Damage,
 		CritChance,

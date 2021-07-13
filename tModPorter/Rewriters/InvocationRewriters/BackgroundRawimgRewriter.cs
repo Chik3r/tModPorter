@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.InvocationRewriters
 {
-	class BackgroundRawimgRewriter : BaseRewriter
+	public class BackgroundRawimgRewriter : BaseRewriter
 	{
 		public BackgroundRawimgRewriter(SemanticModel model, List<string> usingList, 
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }

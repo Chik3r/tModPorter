@@ -6,7 +6,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.MemberAccessRewriters
 {
-	class UseStyleRewriter : BaseRewriter
+	public class UseStyleRewriter : BaseRewriter
 	{
 		private readonly Dictionary<string, string> _useStyleToPort = new()
 		{

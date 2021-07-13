@@ -2,7 +2,7 @@
 
 namespace tModPorter.Rewriters
 {
-	static class RewriterUtilities
+	internal static class RewriterUtilities
 	{
 		public static T WithExtraTrivia<T>(this T nodeToAddTrivia, SyntaxNode nodeWithOldTrivia) where T : SyntaxNode
 		{

@@ -1,6 +1,6 @@
 ﻿namespace tModPorter.Rewriters
 {
-	enum RewriterType
+	public enum RewriterType
 	{
 		None,
 		AnonymousMethod,
