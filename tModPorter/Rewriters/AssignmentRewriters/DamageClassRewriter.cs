@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -36,14 +37,23 @@ namespace tModPorter.Rewriters.AssignmentRewriters
 
 		public override SyntaxNode RewriteNode(SyntaxNode node)
 		{
-			var nodeAssigment = (AssignmentExpressionSyntax) node;
-			var leftMember = (MemberAccessExpressionSyntax) nodeAssigment.Left;
+			AssignmentExpressionSyntax nodeAssigment = (AssignmentExpressionSyntax) node;
+			MemberAccessExpressionSyntax leftMember = (MemberAccessExpressionSyntax) nodeAssigment.Left;
 
-			var newDamage = _fieldToDamageClass.First(f => f.Key == leftMember.Name.ToString());
+			// If the assigned value is false, comment out the line
+			if (nodeAssigment.Right is LiteralExpressionSyntax literalExpression &&
+			    literalExpression.Kind() == SyntaxKind.FalseLiteralExpression)
+			{
+				SyntaxTriviaList leftTriviaList = leftMember.GetLeadingTrivia().Add(Comment("// "));
+				ExpressionSyntax leftMemberCommented = leftMember.WithLeadingTrivia(leftTriviaList); 
+				return nodeAssigment.WithLeft(leftMemberCommented);
+			}
 
-			var modifiedLeft = leftMember.WithName(IdentifierName("DamageType").WithExtraTrivia(leftMember.Name));
-			var newRight = ParseExpression(newDamage.Value).WithExtraTrivia(nodeAssigment.Right);
-			var modifiedAssignment = nodeAssigment.WithLeft(modifiedLeft).WithRight(newRight);
+			KeyValuePair<string, string> newDamage = _fieldToDamageClass.First(f => f.Key == leftMember.Name.ToString());
+
+			MemberAccessExpressionSyntax modifiedLeft = leftMember.WithName(IdentifierName("DamageType").WithExtraTrivia(leftMember.Name));
+			ExpressionSyntax newRight = ParseExpression(newDamage.Value).WithExtraTrivia(nodeAssigment.Right);
+			AssignmentExpressionSyntax modifiedAssignment = nodeAssigment.WithLeft(modifiedLeft).WithRight(newRight);
 
 			return modifiedAssignment;
 		}

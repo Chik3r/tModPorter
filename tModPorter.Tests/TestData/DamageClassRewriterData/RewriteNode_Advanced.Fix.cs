@@ -8,7 +8,7 @@ namespace tModPorter.Tests.TestData.DamageClassRewriterData
         {
             Item item = new Item();
             item.DamageType = DamageClass.Melee;
-            // item.magic = true;
+            // item.magic = false;
             item.width = 0;
         }
     }
