@@ -7,7 +7,7 @@ using tModPorter.Rewriters;
 using tModPorter.Rewriters.AssignmentRewriters;
 using Xunit;
 
-namespace tModPorter.Tests.Rewriters.DamageClass
+namespace tModPorter.Tests.RewriterTests
 {
     public class DamageClassTest
     {
