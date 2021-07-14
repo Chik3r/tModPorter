@@ -24,13 +24,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="TestData\**\*.cs">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Compile>
+        <Compile Remove="TestData\**\*.cs" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="TestData\**\*.Fix.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="TestData\**\*.cs">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>

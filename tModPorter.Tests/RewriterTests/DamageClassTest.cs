@@ -26,7 +26,7 @@ namespace tModPorter.Tests.RewriterTests
             foreach (SyntaxNode assigmentNode in assigmentNodes)
                 rewriter.VisitNode(assigmentNode);
             
-            Assert.Equal(nodeSet.Count, numNodesToFind);
+            Assert.Equal(numNodesToFind, nodeSet.Count);
         }
 
         [Theory]
