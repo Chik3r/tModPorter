@@ -17,7 +17,8 @@ namespace tModPorter.Tests
             root = tree.GetCompilationUnitRoot();
 
             CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
-                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                    MetadataReference.CreateFromFile(typeof(MainRewriter).Assembly.Location))
                 .AddSyntaxTrees(tree);
 
             model = compilation.GetSemanticModel(tree);
