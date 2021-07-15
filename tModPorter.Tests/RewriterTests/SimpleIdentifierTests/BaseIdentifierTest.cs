@@ -13,8 +13,6 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
         protected abstract SimpleIdentifierRewriter CreateIdentifierRewriter(SemanticModel model,
             HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet);
 
-        protected virtual bool ShouldRunTest(string filePath) => true;
-
         [Theory]
         [InlineData("TestData/$1/None.cs", 0)]
         [InlineData("TestData/$1/Single.cs", 1)]
@@ -22,7 +20,6 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
         public virtual void VisitNode_CheckNodeCount(string filePath, int numNodes)
         {
             string fullFilePath = filePath.Replace("$1", GetType().Name);
-            if (!ShouldRunTest(fullFilePath)) return;
 
             string source = File.ReadAllText(fullFilePath);
 
@@ -52,7 +49,6 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
             string targetFullFilePath = targetFilePath == null
                 ? Path.ChangeExtension(fullFilePath, ".Fix.cs")
                 : targetFilePath.Replace("$1", GetType().Name);
-            if (!ShouldRunTest(fullFilePath)) return;
 
             string source = File.ReadAllText(fullFilePath);
             string target = File.ReadAllText(targetFullFilePath);
