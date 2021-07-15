@@ -26,7 +26,8 @@ namespace tModPorter.Rewriters.IdentifierRewriters
 
 		public override SyntaxNode RewriteNode(SyntaxNode node)
 		{
-			return IdentifierName(NewIdentifier).WithExtraTrivia(node);
+			MemberAccessExpressionSyntax syntax = (MemberAccessExpressionSyntax) node;
+			return syntax.WithExpression(IdentifierName(NewIdentifier).WithExtraTrivia(syntax.Expression)).WithExtraTrivia(node);
 		}
 	}
 }
