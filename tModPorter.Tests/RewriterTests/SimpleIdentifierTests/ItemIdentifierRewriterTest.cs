@@ -2,9 +2,8 @@
 using Microsoft.CodeAnalysis;
 using tModPorter.Rewriters;
 using tModPorter.Rewriters.IdentifierRewriters;
-using tModPorter.Tests.RewriterTests.SimpleIdentifierTests;
 
-namespace tModPorter.Tests.RewriterTests
+namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
 {
     public sealed class ItemIdentifierRewriterTest : BaseIdentifierTest
     {
