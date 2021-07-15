@@ -3,17 +3,28 @@
     class Item
     {
         public int field;
-        public int otherField;
     }
     
     public class ItemIdentifier_Multiple
     {
-        void Method(Item item) { }
+        void MethodA(Item item) { }
 
-        void Method()
+        void MethodB()
         {
             Item.field = 0;
             Item.otherField = 0;
+        }
+
+        void MethodC()
+        {
+            int item = 0;
+            item = 0;
+        }
+
+        void MethodD()
+        {
+            item = "";
+            Item.field = "";
         }
     }
 }
