@@ -1,7 +1,12 @@
-﻿using tModPorter.Tests.GenericClasses;
-
-namespace tModPorter.Tests.TestData.DamageClassRewriterData
+﻿namespace tModPorter.Tests.TestData.DamageClassRewriterData
 {
+    class Item
+    {
+        public bool melee;
+        public bool magic;
+        public int width;
+    }
+    
     public class RewriteNode_Advanced
     {
         void Method()

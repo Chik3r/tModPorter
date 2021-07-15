@@ -1,7 +1,15 @@
-﻿using tModPorter.Tests.GenericClasses;
-
-namespace tModPorter.Tests.TestData.DamageClassRewriterData
+﻿namespace tModPorter.Tests.TestData.DamageClassRewriterData
 {
+    class Item
+    {
+        public int width;
+        public bool magic;
+        public bool melee;
+        public bool ranged;
+        public bool summon;
+        public bool thrown;
+    }
+    
     public class VisitNode_Multiple
     {
         private void Method()

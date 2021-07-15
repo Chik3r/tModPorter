@@ -1,4 +1,4 @@
-﻿namespace tModPorter.Tests.TestData.SimpleIdentifierRewriterData
+﻿namespace tModPorter.Tests.TestData.ItemIdentifierRewriterTest
 {
     public class ItemIdentifier_Single
     {

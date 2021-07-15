@@ -1,8 +1,11 @@
-﻿using tModPorter.Tests.GenericClasses;
-
-namespace tModPorter.Tests.TestData.SimpleIdentifierRewriterData
+﻿namespace tModPorter.Tests.TestData.ItemIdentifierRewriterTest
 {
-    public class ItemIdentifier_Single
+    class Item
+    {
+        public int field;
+    }
+    
+    public class ItemIdentifier_None
     {
         void MethodA()
         {

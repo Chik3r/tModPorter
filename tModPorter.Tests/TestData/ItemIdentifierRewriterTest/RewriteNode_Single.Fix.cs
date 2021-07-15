@@ -1,10 +1,10 @@
-﻿namespace tModPorter.Tests.TestData.SimpleIdentifierRewriterData
+﻿namespace tModPorter.Tests.TestData.ItemIdentifierRewriterTest
 {
     public class ItemIdentifier_Single
     {
         void Method()
         {
-            item.field = 0;
+            Item.field = 0;
         }
     }
 }

@@ -1,7 +1,10 @@
-﻿using tModPorter.Tests.GenericClasses;
-
-namespace tModPorter.Tests.TestData.DamageClassRewriterData
+﻿namespace tModPorter.Tests.TestData.DamageClassRewriterData
 {
+    class Item
+    {
+        public int width;
+    }
+    
     public class VisitNode_None
     {
         private void Method()

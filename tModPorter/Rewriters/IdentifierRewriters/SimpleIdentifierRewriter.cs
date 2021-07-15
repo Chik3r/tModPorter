@@ -18,7 +18,9 @@ namespace tModPorter.Rewriters.IdentifierRewriters
 
 		public sealed override void VisitNode(SyntaxNode node)
 		{
-			if (node.ToString() == OldIdentifier && !HasSymbol(node, out _))
+			if (node is not MemberAccessExpressionSyntax memberAccess) return;
+			
+			if (memberAccess.Expression.ToString() == OldIdentifier && !HasSymbol(node, out _))
 				AddNodeToRewrite(node);
 		}
 
