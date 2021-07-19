@@ -7,9 +7,9 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.InvocationRewriters
 {
-	public class ModTypeRewriter : BaseRewriter
+	public class FindTypeRewriter : BaseRewriter
 	{
-		public ModTypeRewriter(SemanticModel model, List<string> usingList,
+		public FindTypeRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.Invocation;
