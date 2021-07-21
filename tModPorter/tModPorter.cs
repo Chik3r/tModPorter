@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,10 +72,13 @@ namespace tModPorter
 			CompilationUnitSyntax result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
 			result = rewriter.AddUsings(result);
 
-			if (!result.IsEquivalentTo(rootNode))
+			if (!result.IsEquivalentTo(rootNode) && document.FilePath != null)
 			{
-				// WriteLine("MODIFIED!!! -> " + document.FilePath);
-				await File.WriteAllTextAsync(document.FilePath, result.ToFullString());
+				Encoding encoding;
+				await using (Stream fs = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read))
+					encoding = EncodingUtils.DetectEncoding(fs);
+
+				await File.WriteAllTextAsync(document.FilePath, result.ToFullString(), encoding);
 			}
 
 			progress.Report(1);
