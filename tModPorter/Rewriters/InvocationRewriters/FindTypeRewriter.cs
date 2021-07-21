@@ -5,18 +5,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.InvocationRewriters
-{
-	public class FindTypeRewriter : BaseRewriter
-	{
-		public FindTypeRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
-
-		public override RewriterType RewriterType => RewriterType.Invocation;
-
+namespace tModPorter.Rewriters.InvocationRewriters {
+	public class FindTypeRewriter : BaseRewriter {
 		// A dictionary to convert old 'Mod.XType("Name")' to the new 'Mod.Find<XType>("Name")'
-		private Dictionary<string, string> _modTypes = new()
-		{
+		private Dictionary<string, string> _modTypes = new() {
 			{"BuffType", "ModBuff"},
 			{"DustType", "ModDust"},
 			{"ItemType", "ModItem"},
@@ -29,8 +21,12 @@ namespace tModPorter.Rewriters.InvocationRewriters
 			{"WallType", "ModWall"},
 		};
 
-		public override void VisitNode(SyntaxNode node)
-		{
+		public FindTypeRewriter(SemanticModel model, List<string> usingList,
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
+
+		public override RewriterType RewriterType => RewriterType.Invocation;
+
+		public override void VisitNode(SyntaxNode node) {
 			if (node is not InvocationExpressionSyntax nodeSyntax)
 				return;
 
@@ -49,13 +45,12 @@ namespace tModPorter.Rewriters.InvocationRewriters
 				AddNodeToRewrite(nodeSyntax);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node)
-		{
+		public override SyntaxNode RewriteNode(SyntaxNode node) {
 			var nodeSyntax = (InvocationExpressionSyntax) node;
 			var memberAccess = nodeSyntax.Expression as MemberAccessExpressionSyntax;
 			var memberBinding = nodeSyntax.Expression as MemberBindingExpressionSyntax;
 
-			var modType = _modTypes.First(m => 
+			var modType = _modTypes.First(m =>
 				(m.Key == memberAccess?.Name.ToString()) || (m.Key == memberBinding?.Name.ToString()));
 
 			// Replace 'mod' with 'Mod'
@@ -63,8 +58,7 @@ namespace tModPorter.Rewriters.InvocationRewriters
 				memberAccess = memberAccess.WithExpression(IdentifierName("Mod"));
 
 			// Replace depending on the type of the expression
-			if (memberAccess != null)
-			{
+			if (memberAccess != null) {
 				// Replace the old 'XType' with the new 'Find<XType>'
 				var newMemberExpression = memberAccess.WithName(IdentifierName($"Find<{modType.Value}>"));
 				var newNode = nodeSyntax.WithExpression(newMemberExpression);
@@ -73,8 +67,7 @@ namespace tModPorter.Rewriters.InvocationRewriters
 				var newMember = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newNode, IdentifierName("Type"));
 				return newMember;
 			}
-			else
-			{
+			else {
 				// Replace the old 'XType' with the new 'Find<XType>'
 				var newMemberExpression = memberBinding.WithName(IdentifierName($"Find<{modType.Value}>"));
 				var newNode = nodeSyntax.WithExpression(newMemberExpression);

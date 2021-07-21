@@ -1,29 +1,25 @@
-﻿using Microsoft.Build.Locator;
-using Microsoft.CodeAnalysis.MSBuild;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MSBuild;
 using tModPorter.Rewriters;
 using static System.Console;
 
-namespace tModPorter
-{
-	class tModPorter
-	{
-		static async Task Main(string[] args)
-		{
+namespace tModPorter {
+	class tModPorter {
+		static async Task Main(string[] args) {
 			MSBuildLocator.RegisterDefaults();
 
 			using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-			
+
 			// Print message for WorkspaceFailed event to help diagnosing project load failures.
-			workspace.WorkspaceFailed += (o, e) =>
-			{
+			workspace.WorkspaceFailed += (o, e) => {
 				ForegroundColor = ConsoleColor.Red;
 				WriteLine(e.Diagnostic.Message);
 				ForegroundColor = ConsoleColor.Gray;
@@ -52,16 +48,14 @@ namespace tModPorter
 			await Task.WhenAll(tasks);
 		}
 
-		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress)
-		{
-			foreach (Document document in chunk) 
+		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress) {
+			foreach (Document document in chunk)
 				await ProcessFile(document, progress);
 		}
 
-		private static async Task ProcessFile(Document document, IProgress<int> progress)
-		{
+		private static async Task ProcessFile(Document document, IProgress<int> progress) {
 			SyntaxTree root = await document.GetSyntaxTreeAsync() ??
-			                   throw new Exception("No syntax root - " + document.FilePath);
+			                  throw new Exception("No syntax root - " + document.FilePath);
 
 			SyntaxNode rootNode = await root.GetRootAsync();
 
@@ -72,8 +66,7 @@ namespace tModPorter
 			CompilationUnitSyntax result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
 			result = rewriter.AddUsings(result);
 
-			if (!result.IsEquivalentTo(rootNode) && document.FilePath != null)
-			{
+			if (!result.IsEquivalentTo(rootNode) && document.FilePath != null) {
 				Encoding encoding;
 				await using (Stream fs = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read))
 					encoding = EncodingUtils.DetectEncoding(fs);
@@ -84,8 +77,7 @@ namespace tModPorter
 			progress.Report(1);
 		}
 
-		private static string GetProjectPath(string[] args)
-		{
+		private static string GetProjectPath(string[] args) {
 			// Check if the args have a valid file path
 			if (args.Length > 0 && File.Exists(Path.ChangeExtension(args[0], ".csproj")))
 				return args[0];
@@ -95,13 +87,12 @@ namespace tModPorter
 			string filePath = Path.ChangeExtension(ReadLine(), ".csproj");
 
 			// Continue asking until a valid file is passed
-			while (!File.Exists(filePath))
-			{
+			while (!File.Exists(filePath)) {
 				Clear();
 				ForegroundColor = ConsoleColor.Yellow;
 				WriteLine("The path you entered doesn't exist");
 				ForegroundColor = ConsoleColor.Gray;
-				
+
 				filePath = Path.ChangeExtension(ReadLine(), ".csproj");
 			}
 
@@ -113,13 +104,10 @@ namespace tModPorter
 			return filePath;
 		}
 
-		private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
-		{
-			public void Report(ProjectLoadProgress loadProgress)
-			{
+		private class ConsoleProgressReporter : IProgress<ProjectLoadProgress> {
+			public void Report(ProjectLoadProgress loadProgress) {
 				var projectDisplay = Path.GetFileName(loadProgress.FilePath);
-				if (loadProgress.TargetFramework != null)
-				{
+				if (loadProgress.TargetFramework != null) {
 					projectDisplay += $" ({loadProgress.TargetFramework})";
 				}
 

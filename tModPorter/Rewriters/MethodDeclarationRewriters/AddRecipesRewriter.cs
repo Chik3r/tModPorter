@@ -4,28 +4,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MethodDeclarationRewriters
-{
-	public class AddRecipesRewriter : BaseRewriter
-	{
+namespace tModPorter.Rewriters.MethodDeclarationRewriters {
+	public class AddRecipesRewriter : BaseRewriter {
 		public AddRecipesRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
 
 		public override RewriterType RewriterType => RewriterType.Method;
 
-		public override void VisitNode(SyntaxNode node)
-		{
+		public override void VisitNode(SyntaxNode node) {
 			if (node is not MethodDeclarationSyntax nodeMethod)
 				return;
 
 			// Make sure the body isn't null, that the method name is "AddRecipes", that it has statements, and that it hasn't already been ported
-			if (nodeMethod.Body != null && nodeMethod.Identifier.Text == "AddRecipes" 
+			if (nodeMethod.Body != null && nodeMethod.Identifier.Text == "AddRecipes"
 			                            && nodeMethod.Body.Statements.Count != 0 && !nodeMethod.Body.ToString().Contains("CreateRecipe"))
 				AddNodeToRewrite(node);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node)
-		{
+		public override SyntaxNode RewriteNode(SyntaxNode node) {
 			var nodeMethod = (MethodDeclarationSyntax) node;
 			var leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
 			var newStatements = new SyntaxList<StatementSyntax>();
@@ -34,8 +30,7 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters
 			int resultAmount = 1;
 			string result = null;
 
-			foreach (StatementSyntax statementSyntax in nodeMethod.Body.Statements)
-			{
+			foreach (StatementSyntax statementSyntax in nodeMethod.Body.Statements) {
 				if (statementSyntax is not ExpressionStatementSyntax
 					{Expression: InvocationExpressionSyntax invocationExpressionSyntax})
 					continue;
@@ -44,8 +39,7 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters
 					continue;
 
 				// Parse the existing recipe
-				switch (memberAccessSyntax.Name.ToString())
-				{
+				switch (memberAccessSyntax.Name.ToString()) {
 					case "AddIngredient":
 					case "AddTile":
 					case "AddRecipeGroup":

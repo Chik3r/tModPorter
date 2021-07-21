@@ -7,98 +7,92 @@ using tModPorter.Rewriters;
 using tModPorter.Rewriters.AssignmentRewriters;
 using Xunit;
 
-namespace tModPorter.Tests.RewriterTests
-{
-    public class DamageClassTest
-    {
-        [Theory]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs", 0)]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_Single.cs", 1)]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_Multiple.cs", 5)]
-        public void VisitNode_CheckNodeCount(string inputFile, int numNodesToFind)
-        {
-            string source = File.ReadAllText(inputFile);
-            CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
-                out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
+namespace tModPorter.Tests.RewriterTests {
+	public class DamageClassTest {
+		[Theory]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs", 0)]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_Single.cs", 1)]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_Multiple.cs", 5)]
+		public void VisitNode_CheckNodeCount(string inputFile, int numNodesToFind) {
+			string source = File.ReadAllText(inputFile);
+			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
+				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
 
-            IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is AssignmentExpressionSyntax);
+			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is AssignmentExpressionSyntax);
 
-            foreach (SyntaxNode assigmentNode in assigmentNodes)
-                rewriter.VisitNode(assigmentNode);
-            
-            Assert.Equal(numNodesToFind, nodeSet.Count);
-        }
+			foreach (SyntaxNode assigmentNode in assigmentNodes)
+				rewriter.VisitNode(assigmentNode);
 
-        [Theory]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs")]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
-        public void VisitNode_CheckNodeCount_WhenWrongStatementType(string inputFile)
-        {
-            string source = File.ReadAllText(inputFile);
+			Assert.Equal(numNodesToFind, nodeSet.Count);
+		}
 
-            CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
-                out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
+		[Theory]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs")]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
+		public void VisitNode_CheckNodeCount_WhenWrongStatementType(string inputFile) {
+			string source = File.ReadAllText(inputFile);
 
-            IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is not AssignmentExpressionSyntax);
+			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
+				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
 
-            foreach (SyntaxNode assigmentNode in assigmentNodes)
-                rewriter.VisitNode(assigmentNode);
-            
-            Assert.Empty(nodeSet);
-        }
+			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is not AssignmentExpressionSyntax);
 
-        [Theory]
-        [InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
-        public void VisitNode_CheckNodeCount_WhenSimilarFieldName(string inputFile)
-        {
-            string source = File.ReadAllText(inputFile);
+			foreach (SyntaxNode assigmentNode in assigmentNodes)
+				rewriter.VisitNode(assigmentNode);
 
-            CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
-                out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
+			Assert.Empty(nodeSet);
+		}
 
-            IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is AssignmentExpressionSyntax);
+		[Theory]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
+		public void VisitNode_CheckNodeCount_WhenSimilarFieldName(string inputFile) {
+			string source = File.ReadAllText(inputFile);
 
-            foreach (SyntaxNode assigmentNode in assigmentNodes)
-                rewriter.VisitNode(assigmentNode);
+			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
+				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
 
-            Assert.Empty(nodeSet);
-        }
+			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes().Where(x => x is AssignmentExpressionSyntax);
 
-        [Fact]
-        public void RewriterTypeGet()
-        {
-            DamageClassRewriter rewriter = new(null, null, null);
-            Assert.Equal(RewriterType.Assignment, rewriter.RewriterType);
-        }
+			foreach (SyntaxNode assigmentNode in assigmentNodes)
+				rewriter.VisitNode(assigmentNode);
 
-        [Theory]
-        [InlineData("TestData/DamageClassRewriterData/RewriteNode_Single.cs", "TestData/DamageClassRewriterData/RewriteNode_Single.Fix.cs")]
-        [InlineData("TestData/DamageClassRewriterData/RewriteNode_Multiple.cs", "TestData/DamageClassRewriterData/RewriteNode_Multiple.Fix.cs")]
-        [InlineData("TestData/DamageClassRewriterData/RewriteNode_Advanced.cs", "TestData/DamageClassRewriterData/RewriteNode_Advanced.Fix.cs")]
-        public void RewriteNodeTest(string inputFile, string targetFile)
-        {
-            string source = File.ReadAllText(inputFile);
-            string target = File.ReadAllText(targetFile);
-            CreateSimpleRewriter(source, out DamageClassRewriter damageClassRewriter,
-                out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
+			Assert.Empty(nodeSet);
+		}
 
-            IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes();
+		[Fact]
+		public void RewriterTypeGet() {
+			DamageClassRewriter rewriter = new(null, null, null);
+			Assert.Equal(RewriterType.Assignment, rewriter.RewriterType);
+		}
 
-            foreach (SyntaxNode assigmentNode in assigmentNodes)
-                damageClassRewriter.VisitNode(assigmentNode);
+		[Theory]
+		[InlineData("TestData/DamageClassRewriterData/RewriteNode_Single.cs", "TestData/DamageClassRewriterData/RewriteNode_Single.Fix.cs")]
+		[InlineData("TestData/DamageClassRewriterData/RewriteNode_Multiple.cs",
+			"TestData/DamageClassRewriterData/RewriteNode_Multiple.Fix.cs")]
+		[InlineData("TestData/DamageClassRewriterData/RewriteNode_Advanced.cs",
+			"TestData/DamageClassRewriterData/RewriteNode_Advanced.Fix.cs")]
+		public void RewriteNodeTest(string inputFile, string targetFile) {
+			string source = File.ReadAllText(inputFile);
+			string target = File.ReadAllText(targetFile);
+			CreateSimpleRewriter(source, out DamageClassRewriter damageClassRewriter,
+				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
 
-            root = root.RewriteMultipleNodes(nodeSet);
+			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes();
 
-            Assert.Equal(target, root.ToFullString());
-        }
+			foreach (SyntaxNode assigmentNode in assigmentNodes)
+				damageClassRewriter.VisitNode(assigmentNode);
 
-        private void CreateSimpleRewriter(string source, out DamageClassRewriter rewriter,
-            out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root)
-        {
-            Utils.CreateCSharpCompilation(source, "DamageClassTest", out _, out root, out SemanticModel model);
+			root = root.RewriteMultipleNodes(nodeSet);
 
-            nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
-            rewriter = new DamageClassRewriter(model, null, nodeSet);
-        }
-    }
+			Assert.Equal(target, root.ToFullString());
+		}
+
+		private void CreateSimpleRewriter(string source, out DamageClassRewriter rewriter,
+			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root) {
+			Utils.CreateCSharpCompilation(source, "DamageClassTest", out _, out root, out SemanticModel model);
+
+			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
+			rewriter = new DamageClassRewriter(model, null, nodeSet);
+		}
+	}
 }
