@@ -54,7 +54,7 @@ namespace tModPorter.Rewriters {
 
 		internal CompilationUnitSyntax AddUsings(CompilationUnitSyntax syntax) {
 			List<UsingDirectiveSyntax> usingDirectives = new();
-			foreach (string usingName in _usingList)
+			foreach (string usingName in _usingList.Where(us => !syntax.Usings.Select(oldUsing => oldUsing.Name.ToString()).Contains(us)))
 				usingDirectives.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(" " + usingName))
 					.WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
 			return syntax.AddUsings(usingDirectives.ToArray());
