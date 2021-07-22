@@ -17,12 +17,11 @@ namespace tModPorter.Rewriters.IdentifierRewriters {
 			if (node is not MemberAccessExpressionSyntax memberAccess) return;
 
 			if (memberAccess.Expression.ToString() == OldIdentifier && !HasSymbol(node, out _))
-				AddNodeToRewrite(node);
+				AddNodeToRewrite(memberAccess.Expression);
 		}
 
 		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			MemberAccessExpressionSyntax syntax = (MemberAccessExpressionSyntax) node;
-			return syntax.WithExpression(IdentifierName(NewIdentifier).WithExtraTrivia(syntax.Expression)).WithExtraTrivia(node);
+			return IdentifierName(NewIdentifier).WithExtraTrivia(node);
 		}
 	}
 }
