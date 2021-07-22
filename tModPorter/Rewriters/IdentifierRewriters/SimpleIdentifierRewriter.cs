@@ -14,10 +14,10 @@ namespace tModPorter.Rewriters.IdentifierRewriters {
 		public sealed override RewriterType RewriterType => RewriterType.Identifier;
 
 		public sealed override void VisitNode(SyntaxNode node) {
-			if (node is not MemberAccessExpressionSyntax memberAccess) return;
+			if (node is not IdentifierNameSyntax {Parent: MemberAccessExpressionSyntax} identifier) return;
 
-			if (memberAccess.Expression.ToString() == OldIdentifier && !HasSymbol(node, out _))
-				AddNodeToRewrite(memberAccess.Expression);
+			if (identifier.ToString() == OldIdentifier && !HasSymbol(node, out _))
+				AddNodeToRewrite(identifier);
 		}
 
 		public override SyntaxNode RewriteNode(SyntaxNode node) {
