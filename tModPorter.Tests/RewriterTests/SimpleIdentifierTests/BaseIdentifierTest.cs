@@ -9,7 +9,7 @@ using Xunit;
 namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 	public abstract class BaseIdentifierTest {
 		protected abstract SimpleIdentifierRewriter CreateIdentifierRewriter(SemanticModel model,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet);
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, List<string>? usingList);
 
 		[Theory]
 		[InlineData("TestData/$1/None.cs", 0)]
@@ -25,7 +25,7 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 
 			// Create a rewriter
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet = new();
-			SimpleIdentifierRewriter rewriter = CreateIdentifierRewriter(model, nodeSet);
+			SimpleIdentifierRewriter rewriter = CreateIdentifierRewriter(model, nodeSet, null);
 
 			// Get all nodes in the file
 			IEnumerable<SyntaxNode> descendantNodes = root.DescendantNodes();
@@ -54,7 +54,7 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 
 			// Create a rewriter
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet = new();
-			SimpleIdentifierRewriter rewriter = CreateIdentifierRewriter(model, nodeSet);
+			SimpleIdentifierRewriter rewriter = CreateIdentifierRewriter(model, nodeSet, null);
 
 			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes();
 
@@ -64,6 +64,33 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 			root = root.RewriteMultipleNodes(nodeSet);
 
 			Assert.Equal(target, root.ToFullString());
+		}
+		
+		[Theory]
+		[InlineData("TestData/$1/Single.cs")]
+		[InlineData("TestData/$1/Multiple.cs")]
+		public virtual void RewriteNode_CheckAddedUsings(string filePath)
+		{
+			string fullFilePath = filePath.Replace("$1", GetType().Name);
+
+			string source = File.ReadAllText(fullFilePath);
+
+			// Create a compilation for the file we are going to rewrite
+			Utils.CreateCSharpCompilation(source, GetType().Name, out _, out CompilationUnitSyntax root, out SemanticModel model);
+
+			// Create a rewriter
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet = new();
+			List<string> usingList = new();
+			SimpleIdentifierRewriter rewriter = CreateIdentifierRewriter(model, nodeSet, usingList);
+
+			IEnumerable<SyntaxNode> assigmentNodes = root.DescendantNodes();
+
+			foreach (SyntaxNode assigmentNode in assigmentNodes)
+				rewriter.VisitNode(assigmentNode);
+
+			root.RewriteMultipleNodes(nodeSet);
+			
+			Assert.Single(usingList);
 		}
 	}
 }
