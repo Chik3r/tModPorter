@@ -19,19 +19,22 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 				return;
 
 			if (nodeSyntax.Name.ToString() == OldModifier && !HasSymbol(nodeSyntax, out _))
-				AddNodeToRewrite(nodeSyntax);
+				AddNodeToRewrite(nodeSyntax.Name);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			var nodeSyntax = (MemberAccessExpressionSyntax) node;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			if (node is not IdentifierNameSyntax nodeSyntax) return node;
+
+			SyntaxNode newNode;
 			if (ModifierType == ModifierType.Damage)
-				nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetDamage({NewModifier})"));
+				newNode = IdentifierName($"GetDamage({NewModifier})");
 			else
-				nodeSyntax = nodeSyntax.WithName(IdentifierName($"GetCritChance({NewModifier})"));
+				newNode = IdentifierName($"GetCritChance({NewModifier})");
 
-			nodeSyntax = nodeSyntax.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+			newNode = newNode.WithTriviaFrom(nodeSyntax);
 
-			return nodeSyntax;
+			return newNode;
 		}
 	}
 
