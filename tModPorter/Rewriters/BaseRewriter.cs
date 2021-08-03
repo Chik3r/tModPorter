@@ -31,7 +31,10 @@ namespace tModPorter.Rewriters {
 		/// <returns>The rewritten node</returns>
 		public virtual SyntaxNode RewriteNode(SyntaxNode node) => node;
 
-		protected void AddUsing(string newUsing) {
+		protected void AddUsing(string newUsing)
+		{
+			if (_usingList is null) return;
+			
 			if (!_usingList.Contains(newUsing.Trim()))
 				_usingList.Add(newUsing.Trim());
 		}
