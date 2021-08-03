@@ -10,6 +10,7 @@ namespace tModPorter.Rewriters.IdentifierRewriters {
 
 		public abstract string OldIdentifier { get; }
 		public abstract string NewIdentifier { get; }
+		public virtual string NeededUsing => "Terraria.ModLoader";
 
 		public sealed override RewriterType RewriterType => RewriterType.Identifier;
 
@@ -20,7 +21,9 @@ namespace tModPorter.Rewriters.IdentifierRewriters {
 				AddNodeToRewrite(identifier);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			if (NeededUsing != null) AddUsing(NeededUsing);
 			return IdentifierName(NewIdentifier).WithExtraTrivia(node);
 		}
 	}
