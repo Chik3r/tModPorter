@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters {
@@ -53,6 +55,19 @@ namespace tModPorter.Rewriters {
 				symbol = null;
 				return false;
 			}
+		}
+
+		protected static bool TryGetAncestorNode<TNode>(SyntaxNode currentNode, [NotNullWhen(true)] out TNode ancestor) where TNode : SyntaxNode
+		{
+			ancestor = null;
+			if (currentNode == null) return false;
+			
+			IEnumerable<TNode> ancestors = currentNode.Ancestors().OfType<TNode>();
+			TNode[] syntaxNodes = ancestors as TNode[] ?? ancestors.ToArray();
+			if (syntaxNodes.Length == 0) return false;
+
+			ancestor = syntaxNodes.First();
+			return true;
 		}
 	}
 }
