@@ -21,35 +21,67 @@ namespace tModPorter.Rewriters.AssignmentRewriters {
 		public override RewriterType RewriterType => RewriterType.Assignment;
 
 		public override void VisitNode(SyntaxNode node) {
+			// Find `x.y = true` or `x.y = false`
 			if (node is not AssignmentExpressionSyntax nodeAssignment)
 				return;
 
-			if (nodeAssignment.Left is not MemberAccessExpressionSyntax leftMember)
+			if (nodeAssignment.Left is not MemberAccessExpressionSyntax accessExpression)
 				return;
 
-			if (_fieldToDamageClass.Any(f => f.Key == leftMember.Name.ToString()))
+			if (nodeAssignment.Right.Kind() == SyntaxKind.FalseLiteralExpression)
+			{
 				AddNodeToRewrite(nodeAssignment);
+				return;
+			}
+			
+			if (_fieldToDamageClass.Any(f => f.Key == accessExpression.Name.ToString()))
+			{
+				AddNodeToRewrite(accessExpression.Name);
+				AddNodeToRewrite(nodeAssignment.Right);
+			}
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			AssignmentExpressionSyntax nodeAssigment = (AssignmentExpressionSyntax) node;
-			MemberAccessExpressionSyntax leftMember = (MemberAccessExpressionSyntax) nodeAssigment.Left;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			// Do different rewrites depending on the node
+			return node switch
+			{
+				AssignmentExpressionSyntax => CommentOutFalseAssigment(node),
+				IdentifierNameSyntax {Parent: MemberAccessExpressionSyntax} fieldIdentifier => RewriteAccessField(fieldIdentifier),
+				LiteralExpressionSyntax {RawKind: (int) SyntaxKind.FalseLiteralExpression or (int) SyntaxKind.TrueLiteralExpression}
+					literalValue => RewriteAssignedValue(literalValue),
+				_ => node
+			};
+		}
 
-			// If the assigned value is false, comment out the line
-			if (nodeAssigment.Right is LiteralExpressionSyntax literalExpression &&
-			    literalExpression.Kind() == SyntaxKind.FalseLiteralExpression) {
-				SyntaxTriviaList leftTriviaList = leftMember.GetLeadingTrivia().Add(Comment("// "));
-				ExpressionSyntax leftMemberCommented = leftMember.WithLeadingTrivia(leftTriviaList);
-				return nodeAssigment.WithLeft(leftMemberCommented);
-			}
+		private static SyntaxNode CommentOutFalseAssigment(SyntaxNode oldNode)
+		{
+			if (oldNode is not AssignmentExpressionSyntax assigment) return oldNode;
+			
+			SyntaxTriviaList leadingTrivia = assigment.GetLeadingTrivia().Add(Comment("// "));
+			ExpressionSyntax commentedNde = assigment.WithLeadingTrivia(leadingTrivia);
+			return commentedNde;
+		}
 
-			KeyValuePair<string, string> newDamage = _fieldToDamageClass.First(f => f.Key == leftMember.Name.ToString());
+		SyntaxNode RewriteAccessField(SyntaxNode oldNode)
+		{
+			// <oldNode> is `y` (`x.y = true`)
+			if (oldNode is not IdentifierNameSyntax) return oldNode;
 
-			MemberAccessExpressionSyntax modifiedLeft = leftMember.WithName(IdentifierName("DamageType").WithExtraTrivia(leftMember.Name));
-			ExpressionSyntax newRight = ParseExpression(newDamage.Value).WithExtraTrivia(nodeAssigment.Right);
-			AssignmentExpressionSyntax modifiedAssignment = nodeAssigment.WithLeft(modifiedLeft).WithRight(newRight);
+			SyntaxNode newNode = IdentifierName("DamageType").WithTriviaFrom(oldNode);
+			return newNode;
+		}
 
-			return modifiedAssignment;
+		SyntaxNode RewriteAssignedValue(SyntaxNode oldNode)
+		{
+			// <oldNode> should be `true`, get parent node (x.y = true), and then get `x.y` (<fieldName>)
+			if (oldNode is not LiteralExpressionSyntax
+				{Parent: AssignmentExpressionSyntax {Left: MemberAccessExpressionSyntax fieldName}})
+				return oldNode;
+
+			KeyValuePair<string, string> newDamage = _fieldToDamageClass.First(f => f.Key == fieldName.Name.ToString());
+			ExpressionSyntax newValue = ParseExpression(newDamage.Value).WithTriviaFrom(oldNode);
+			return newValue;
 		}
 	}
 }
