@@ -11,8 +11,8 @@ namespace tModPorter.Tests.RewriterTests {
 	public class DamageClassTest {
 		[Theory]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs", 0)]
-		[InlineData("TestData/DamageClassRewriterData/VisitNode_Single.cs", 1)]
-		[InlineData("TestData/DamageClassRewriterData/VisitNode_Multiple.cs", 5)]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_Single.cs", 2)]
+		[InlineData("TestData/DamageClassRewriterData/VisitNode_Multiple.cs", 8)]
 		public void VisitNode_CheckNodeCount(string inputFile, int numNodesToFind) {
 			string source = File.ReadAllText(inputFile);
 			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
