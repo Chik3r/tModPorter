@@ -48,7 +48,7 @@ namespace tModPorter.Tests {
 
 			root = root.ReplaceSyntax(
 				nodes: nodeDictionary.Keys.AsEnumerable(), (original, _) => nodeDictionary[original],
-				tokens: Array.Empty<SyntaxToken>(), (original, _) => tokenDictionary[original],
+				tokens: tokenDictionary.Keys.AsEnumerable(), (original, _) => tokenDictionary[original],
 				trivia: Array.Empty<SyntaxTrivia>(), (original, _) => original);
 			return root;
 		}
