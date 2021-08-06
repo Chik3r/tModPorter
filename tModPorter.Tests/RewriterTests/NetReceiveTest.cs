@@ -18,7 +18,7 @@ namespace tModPorter.Tests.RewriterTests
 			string target = File.ReadAllText("TestData/NetReceiveTest/Single.Fix.cs");
 			
 			// Create compilation for .cs source
-			Utils.CreateCSharpCompilation(source, nameof(NetReceiveRename), out _, out CompilationUnitSyntax root, out SemanticModel model);
+			Utils.CreateCSharpCompilation(source, nameof(NetReceiveTest), out _, out CompilationUnitSyntax root, out SemanticModel model);
 
 			// Create a rewriter
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokenDict = new();
