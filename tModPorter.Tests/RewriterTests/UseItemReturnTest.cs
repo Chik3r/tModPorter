@@ -43,7 +43,7 @@ namespace tModPorter.Tests.RewriterTests {
 			Utils.CreateCSharpCompilation(source, nameof(UseItemReturnTest), out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
-			rewriter = new UseItemReturnRewriter(model, null, nodeSet);
+			rewriter = new UseItemReturnRewriter(model, null, nodeSet, null);
 		}
 	}
 }

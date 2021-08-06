@@ -15,7 +15,10 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 		};
 
 		public UseStyleRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+			: base(model, usingList, nodesToRewrite, tokensToRewrite)
+		{ }
 
 		public override RewriterType RewriterType => RewriterType.MemberAccess;
 

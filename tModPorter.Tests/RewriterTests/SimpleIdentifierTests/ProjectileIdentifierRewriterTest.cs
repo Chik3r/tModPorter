@@ -8,6 +8,6 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 	{
 		protected override SimpleIdentifierRewriter CreateIdentifierRewriter(SemanticModel model,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, List<string>? usingList) =>
-			new ProjectileIdentifierRewriter(model, usingList, nodeSet);
+			new ProjectileIdentifierRewriter(model, usingList, nodeSet, null);
 	}
 }

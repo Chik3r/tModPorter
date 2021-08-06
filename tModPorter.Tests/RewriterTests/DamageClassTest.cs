@@ -61,7 +61,7 @@ namespace tModPorter.Tests.RewriterTests {
 
 		[Fact]
 		public void RewriterTypeGet() {
-			DamageClassRewriter rewriter = new(null, null, null);
+			DamageClassRewriter rewriter = new(null, null, null, null);
 			Assert.Equal(RewriterType.Assignment, rewriter.RewriterType);
 		}
 
@@ -92,7 +92,7 @@ namespace tModPorter.Tests.RewriterTests {
 			Utils.CreateCSharpCompilation(source, "DamageClassTest", out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
-			rewriter = new DamageClassRewriter(model, null, nodeSet);
+			rewriter = new DamageClassRewriter(model, null, nodeSet, null);
 		}
 	}
 }

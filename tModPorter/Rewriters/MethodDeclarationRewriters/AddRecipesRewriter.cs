@@ -7,7 +7,10 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 	public class AddRecipesRewriter : BaseRewriter {
 		public AddRecipesRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) : base(model, usingList, nodesToRewrite) { }
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+			: base(model, usingList, nodesToRewrite, tokensToRewrite)
+		{ }
 
 		public override RewriterType RewriterType => RewriterType.Method;
 

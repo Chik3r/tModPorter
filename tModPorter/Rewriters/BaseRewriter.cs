@@ -6,15 +6,18 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters {
 	public abstract class BaseRewriter {
-		protected SemanticModel _model;
-		private HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite;
-		private List<string> _usingList;
+		protected readonly SemanticModel _model;
+		private readonly List<string> _usingList;
+		private readonly HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite;
+		private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite = new();
 
 		public BaseRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite) {
+			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite) {
 			_model = model;
 			_usingList = usingList;
 			_nodesToRewrite = nodesToRewrite;
+			_tokensToRewrite = tokensToRewrite;
 		}
 
 		public virtual RewriterType RewriterType => RewriterType.None;
@@ -33,6 +36,8 @@ namespace tModPorter.Rewriters {
 		/// <returns>The rewritten node</returns>
 		public virtual SyntaxNode RewriteNode(SyntaxNode node) => node;
 
+		public virtual SyntaxToken RewriteToken(SyntaxToken token) => token;
+
 		protected void AddUsing(string newUsing)
 		{
 			if (_usingList is null) return;
@@ -41,7 +46,8 @@ namespace tModPorter.Rewriters {
 				_usingList.Add(newUsing.Trim());
 		}
 
-		protected void AddNodeToRewrite(SyntaxNode node) => _nodesToRewrite.Add((this, node));
+		protected void AddNodeToRewrite(SyntaxNode node) => _nodesToRewrite?.Add((this, node));
+		protected void AddTokenToRewrite(SyntaxToken token) => _tokensToRewrite?.Add((this, token));
 
 		protected bool HasSymbol(SyntaxNode node, out ISymbol symbol) {
 			// Try to get the symbol

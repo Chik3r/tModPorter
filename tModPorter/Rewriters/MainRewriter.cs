@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace tModPorter.Rewriters {
 	public class MainRewriter : CSharpSyntaxRewriter {
 		private readonly HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite = new();
+		private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite = new();
 		private readonly ILookup<RewriterType, BaseRewriter> _rewriterLookup;
 		private readonly List<string> _usingList = new();
 		private SemanticModel _model;
@@ -20,7 +21,8 @@ namespace tModPorter.Rewriters {
 				.SelectMany(a => a.GetTypes())
 				.Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
 
-			var rewriters = types.Select(type => (BaseRewriter) Activator.CreateInstance(type, _model, _usingList, _nodesToRewrite))
+			var rewriters = types
+				.Select(type => (BaseRewriter) Activator.CreateInstance(type, _model, _usingList, _nodesToRewrite, _tokensToRewrite))
 				.ToList();
 			_rewriterLookup = rewriters.ToLookup(r => r.RewriterType);
 		}
@@ -28,11 +30,21 @@ namespace tModPorter.Rewriters {
 		public SyntaxNode RewriteNodes(SyntaxNode rootNode) {
 			Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
 			foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in _nodesToRewrite) {
-				var newNode = rewriter.RewriteNode(originalNode);
+				SyntaxNode newNode = rewriter.RewriteNode(originalNode);
 				nodeDictionary.Add(originalNode, newNode);
 			}
 
-			rootNode = rootNode.ReplaceNodes(nodeDictionary.Keys.AsEnumerable(), (n1, n2) => nodeDictionary[n1]);
+			Dictionary<SyntaxToken, SyntaxToken> tokenDictionary = new();
+			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in _tokensToRewrite)
+			{
+				SyntaxToken newToken = rewriter.RewriteToken(originalToken);
+				tokenDictionary.Add(originalToken, newToken);
+			}
+
+			rootNode = rootNode.ReplaceSyntax(
+				nodes: nodeDictionary.Keys.AsEnumerable(), (original, _) => nodeDictionary[original],
+                tokens: Array.Empty<SyntaxToken>(), (original, _) => tokenDictionary[original],
+                trivia: Array.Empty<SyntaxTrivia>(), (original, _) => original);
 
 			return rootNode;
 		}

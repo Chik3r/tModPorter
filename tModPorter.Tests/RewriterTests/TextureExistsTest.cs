@@ -46,7 +46,7 @@ namespace tModPorter.Tests.RewriterTests
 			Utils.CreateCSharpCompilation(source, nameof(FindTypeRewriterTest), out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
-			rewriter = new TextureExistsRewriter(model, null, nodeSet);
+			rewriter = new TextureExistsRewriter(model, null, nodeSet, null);
 		}
 	}
 }
