@@ -26,46 +26,54 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 			if (invocation.Expression is not MemberAccessExpressionSyntax member) return;
 			if (!_methodToType.ContainsKey(member.Name.ToString())) return;
 
-			AddNodeToRewrite(member);
-			
-			// TODO: Maybe add .Value after Request<> ?
+			AddNodeToRewrite(invocation);
 		}
 
 		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			if (node is not MemberAccessExpressionSyntax member) return node;
+			if (node is not InvocationExpressionSyntax invocation) return node;
+			MemberAccessExpressionSyntax accessExpression = (MemberAccessExpressionSyntax) invocation.Expression;
 
-			(string type, string addUsing) = _methodToType[member.Name.ToString()];
+			(string type, string addUsing) = _methodToType[accessExpression.Name.ToString()];
 			AddUsing(addUsing);
 
 			TypeArgumentListSyntax typeArgList = TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName(type)));
 			GenericNameSyntax requestSyntax = GenericName("Request").WithTypeArgumentList(typeArgList);
 
-			if (HasSymbol(member.Expression, out ISymbol symbol) && symbol.Name == "ModContent") {
-				// do stuff for ModLoader.Request<>()
-				requestSyntax = requestSyntax.WithTriviaFrom(member.Name);
+			if (HasSymbol(accessExpression.Expression, out ISymbol symbol) && symbol.Name == "ModContent") {
+				// do stuff for ModContent.Request<>
+				requestSyntax = requestSyntax.WithTriviaFrom(accessExpression.Name);
 
-				MemberAccessExpressionSyntax newMember =
-					MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, member.Expression, requestSyntax)
-						.WithTriviaFrom(member);
-				return newMember;
+				MemberAccessExpressionSyntax newAccessExpression =
+					MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, accessExpression.Expression, requestSyntax)
+						.WithTriviaFrom(accessExpression);
+
+				SyntaxNode newModContentInvocation = invocation.WithExpression(newAccessExpression);
+				return newModContentInvocation;
 			}
 
 			// turn 'mod' to 'Mod'
-			if (!HasSymbol(member.Expression, out _) && member.Expression.ToString() == "mod") {
-				member = member.WithExpression(IdentifierName("Mod").WithTriviaFrom(member.Expression));
+			if (!HasSymbol(accessExpression.Expression, out _) && accessExpression.Expression.ToString() == "mod") {
+				accessExpression = accessExpression.WithExpression(IdentifierName("Mod").WithTriviaFrom(accessExpression.Expression));
 			}
 
-			
+
 			// do stuff for Mod.Assets.Request<>()
 			// Create Mod.Assets
 			MemberAccessExpressionSyntax modAssetsSyntax =
-				MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, member.Expression, IdentifierName("Assets"));
-			
-			// Create Mod.Assets.Request<>()
+				MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, accessExpression.Expression, IdentifierName("Assets"));
+
+			// Create Mod.Assets.Request<>
 			MemberAccessExpressionSyntax assetsRequestSyntax =
 				MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, modAssetsSyntax, requestSyntax);
-			
-			return assetsRequestSyntax.WithTriviaFrom(node);
+
+			// Create Mod.Assets.Request<>()
+			InvocationExpressionSyntax requestInvocation = invocation.WithExpression(assetsRequestSyntax);
+
+			// Create Mod.Assets.Request<>().Value
+			MemberAccessExpressionSyntax assetValueAccess =
+				MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, requestInvocation, IdentifierName("Value"));
+
+			return assetValueAccess;
 		}
 	}
 }
