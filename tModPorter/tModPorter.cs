@@ -11,9 +11,12 @@ using Microsoft.CodeAnalysis.MSBuild;
 using tModPorter.Rewriters;
 using static System.Console;
 
-namespace tModPorter {
-	class tModPorter {
-		static async Task Main(string[] args) {
+namespace tModPorter
+{
+	class tModPorter
+	{
+		static async Task Main(string[] args)
+		{
 			MSBuildLocator.RegisterDefaults();
 
 			using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
@@ -48,12 +51,14 @@ namespace tModPorter {
 			await Task.WhenAll(tasks);
 		}
 
-		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress) {
+		private static async Task ProcessChunk(IEnumerable<Document> chunk, IProgress<int> progress)
+		{
 			foreach (Document document in chunk)
 				await ProcessFile(document, progress);
 		}
 
-		private static async Task ProcessFile(Document document, IProgress<int> progress) {
+		private static async Task ProcessFile(Document document, IProgress<int> progress)
+		{
 			SyntaxTree root = await document.GetSyntaxTreeAsync() ??
 			                  throw new Exception("No syntax root - " + document.FilePath);
 
@@ -77,7 +82,8 @@ namespace tModPorter {
 			progress.Report(1);
 		}
 
-		private static string GetProjectPath(string[] args) {
+		private static string GetProjectPath(string[] args)
+		{
 			// Check if the args have a valid file path
 			if (args.Length > 0 && File.Exists(Path.ChangeExtension(args[0], ".csproj")))
 				return args[0];
@@ -104,9 +110,11 @@ namespace tModPorter {
 			return filePath;
 		}
 
-		private class ConsoleProgressReporter : IProgress<ProjectLoadProgress> {
-			public void Report(ProjectLoadProgress loadProgress) {
-				var projectDisplay = Path.GetFileName(loadProgress.FilePath);
+		private class ConsoleProgressReporter : IProgress<ProjectLoadProgress>
+		{
+			public void Report(ProjectLoadProgress loadProgress)
+			{
+				string? projectDisplay = Path.GetFileName(loadProgress.FilePath);
 				if (loadProgress.TargetFramework != null) {
 					projectDisplay += $" ({loadProgress.TargetFramework})";
 				}

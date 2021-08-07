@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace tModPorter.Rewriters.IdentifierRewriters {
-	public class PlayerIdentifierRewriter : SimpleIdentifierRewriter {
+namespace tModPorter.Rewriters.IdentifierRewriters
+{
+	public class PlayerIdentifierRewriter : SimpleIdentifierRewriter
+	{
 		public PlayerIdentifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)

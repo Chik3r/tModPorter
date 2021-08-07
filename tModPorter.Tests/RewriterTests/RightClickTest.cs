@@ -16,17 +16,17 @@ namespace tModPorter.Tests.RewriterTests
 			// Get source code from .cs files
 			string source = File.ReadAllText("TestData/RightClickTest/Single.cs");
 			string target = File.ReadAllText("TestData/RightClickTest/Single.Fix.cs");
-			
+
 			// Create compilation for .cs source
 			Utils.CreateCSharpCompilation(source, nameof(RightClickTest), out _, out CompilationUnitSyntax root, out SemanticModel model);
 
 			// Create a rewriter
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokenDict = new();
 			BaseRewriter rewriter = new RightClickRename(model, null, null, tokenDict);
-			
+
 			foreach (SyntaxNode assigmentNode in root.DescendantNodes())
 				rewriter.VisitNode(assigmentNode);
-			
+
 			Assert.Single(tokenDict);
 
 			root = root.RewriteMultipleNodes(null, tokenDict);

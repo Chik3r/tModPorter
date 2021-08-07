@@ -6,7 +6,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using tModPorter.Rewriters;
 
-namespace tModPorter.Tests {
+namespace tModPorter.Tests
+{
 	public static class Utils
 	{
 		public static CSharpCompilation CreateCSharpCompilation(string source, string assemblyName, out SyntaxTree tree,
@@ -32,16 +33,14 @@ namespace tModPorter.Tests {
 		{
 			nodesToRewrite ??= Array.Empty<(BaseRewriter rewriter, SyntaxNode originalNode)>();
 			Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
-			foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in nodesToRewrite)
-			{
+			foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in nodesToRewrite) {
 				SyntaxNode newNode = rewriter.RewriteNode(originalNode);
 				nodeDictionary.Add(originalNode, newNode);
 			}
 
 			tokensToRewrite ??= Array.Empty<(BaseRewriter rewriter, SyntaxToken originalToken)>();
 			Dictionary<SyntaxToken, SyntaxToken> tokenDictionary = new();
-			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in tokensToRewrite)
-			{
+			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in tokensToRewrite) {
 				SyntaxToken newToken = rewriter.RewriteToken(originalToken);
 				tokenDictionary.Add(originalToken, newToken);
 			}

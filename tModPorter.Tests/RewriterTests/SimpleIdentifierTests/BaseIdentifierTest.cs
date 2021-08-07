@@ -6,8 +6,10 @@ using tModPorter.Rewriters;
 using tModPorter.Rewriters.IdentifierRewriters;
 using Xunit;
 
-namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
-	public abstract class BaseIdentifierTest {
+namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
+{
+	public abstract class BaseIdentifierTest
+	{
 		protected abstract SimpleIdentifierRewriter CreateIdentifierRewriter(SemanticModel model,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, List<string>? usingList);
 
@@ -15,7 +17,8 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 		[InlineData("TestData/$1/None.cs", 0)]
 		[InlineData("TestData/$1/Single.cs", 1)]
 		[InlineData("TestData/$1/Multiple.cs", 3)]
-		public virtual void VisitNode_CheckNodeCount(string filePath, int numNodes) {
+		public virtual void VisitNode_CheckNodeCount(string filePath, int numNodes)
+		{
 			string fullFilePath = filePath.Replace("$1", GetType().Name);
 
 			string source = File.ReadAllText(fullFilePath);
@@ -40,7 +43,8 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 		[Theory]
 		[InlineData("TestData/$1/Single.cs")]
 		[InlineData("TestData/$1/Multiple.cs")]
-		public virtual void RewriteNode_CompareWithTarget(string filePath, string? targetFilePath = null) {
+		public virtual void RewriteNode_CompareWithTarget(string filePath, string? targetFilePath = null)
+		{
 			string fullFilePath = filePath.Replace("$1", GetType().Name);
 			string targetFullFilePath = targetFilePath == null
 				? Path.ChangeExtension(fullFilePath, ".Fix.cs")
@@ -65,7 +69,7 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 
 			Assert.Equal(target, root.ToFullString());
 		}
-		
+
 		[Theory]
 		[InlineData("TestData/$1/Single.cs")]
 		[InlineData("TestData/$1/Multiple.cs")]
@@ -89,7 +93,7 @@ namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
 				rewriter.VisitNode(assigmentNode);
 
 			root.RewriteMultipleNodes(nodeSet);
-			
+
 			Assert.Single(usingList);
 		}
 	}

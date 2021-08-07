@@ -7,13 +7,16 @@ using tModPorter.Rewriters;
 using tModPorter.Rewriters.AssignmentRewriters;
 using Xunit;
 
-namespace tModPorter.Tests.RewriterTests {
-	public class DamageClassTest {
+namespace tModPorter.Tests.RewriterTests
+{
+	public class DamageClassTest
+	{
 		[Theory]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs", 0)]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_Single.cs", 2)]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_Multiple.cs", 8)]
-		public void VisitNode_CheckNodeCount(string inputFile, int numNodesToFind) {
+		public void VisitNode_CheckNodeCount(string inputFile, int numNodesToFind)
+		{
 			string source = File.ReadAllText(inputFile);
 			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
 				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
@@ -29,7 +32,8 @@ namespace tModPorter.Tests.RewriterTests {
 		[Theory]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_None.cs")]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
-		public void VisitNode_CheckNodeCount_WhenWrongStatementType(string inputFile) {
+		public void VisitNode_CheckNodeCount_WhenWrongStatementType(string inputFile)
+		{
 			string source = File.ReadAllText(inputFile);
 
 			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
@@ -45,7 +49,8 @@ namespace tModPorter.Tests.RewriterTests {
 
 		[Theory]
 		[InlineData("TestData/DamageClassRewriterData/VisitNode_SimilarName.cs")]
-		public void VisitNode_CheckNodeCount_WhenSimilarFieldName(string inputFile) {
+		public void VisitNode_CheckNodeCount_WhenSimilarFieldName(string inputFile)
+		{
 			string source = File.ReadAllText(inputFile);
 
 			CreateSimpleRewriter(source, out DamageClassRewriter rewriter,
@@ -60,7 +65,8 @@ namespace tModPorter.Tests.RewriterTests {
 		}
 
 		[Fact]
-		public void RewriterTypeGet() {
+		public void RewriterTypeGet()
+		{
 			DamageClassRewriter rewriter = new(null, null, null, null);
 			Assert.Equal(RewriterType.Assignment, rewriter.RewriterType);
 		}
@@ -71,7 +77,8 @@ namespace tModPorter.Tests.RewriterTests {
 			"TestData/DamageClassRewriterData/RewriteNode_Multiple.Fix.cs")]
 		[InlineData("TestData/DamageClassRewriterData/RewriteNode_Advanced.cs",
 			"TestData/DamageClassRewriterData/RewriteNode_Advanced.Fix.cs")]
-		public void RewriteNodeTest(string inputFile, string targetFile) {
+		public void RewriteNodeTest(string inputFile, string targetFile)
+		{
 			string source = File.ReadAllText(inputFile);
 			string target = File.ReadAllText(targetFile);
 			CreateSimpleRewriter(source, out DamageClassRewriter damageClassRewriter,
@@ -88,7 +95,8 @@ namespace tModPorter.Tests.RewriterTests {
 		}
 
 		private void CreateSimpleRewriter(string source, out DamageClassRewriter rewriter,
-			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root) {
+			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root)
+		{
 			Utils.CreateCSharpCompilation(source, "DamageClassTest", out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();

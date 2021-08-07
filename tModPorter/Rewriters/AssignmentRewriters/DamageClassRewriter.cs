@@ -5,9 +5,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.AssignmentRewriters {
-	public class DamageClassRewriter : BaseRewriter {
-		private Dictionary<string, string> _fieldToDamageClass = new() {
+namespace tModPorter.Rewriters.AssignmentRewriters
+{
+	public class DamageClassRewriter : BaseRewriter
+	{
+		private readonly Dictionary<string, string> _fieldToDamageClass = new() {
 			{"magic", "DamageClass.Magic"},
 			{"melee", "DamageClass.Melee"},
 			{"ranged", "DamageClass.Ranged"},
@@ -23,7 +25,8 @@ namespace tModPorter.Rewriters.AssignmentRewriters {
 
 		public override RewriterType RewriterType => RewriterType.Assignment;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			// Find `x.y = true` or `x.y = false`
 			if (node is not AssignmentExpressionSyntax nodeAssignment)
 				return;
@@ -31,14 +34,12 @@ namespace tModPorter.Rewriters.AssignmentRewriters {
 			if (nodeAssignment.Left is not MemberAccessExpressionSyntax accessExpression)
 				return;
 
-			if (nodeAssignment.Right.Kind() == SyntaxKind.FalseLiteralExpression)
-			{
+			if (nodeAssignment.Right.Kind() == SyntaxKind.FalseLiteralExpression) {
 				AddNodeToRewrite(nodeAssignment);
 				return;
 			}
-			
-			if (_fieldToDamageClass.Any(f => f.Key == accessExpression.Name.ToString()))
-			{
+
+			if (_fieldToDamageClass.Any(f => f.Key == accessExpression.Name.ToString())) {
 				AddNodeToRewrite(accessExpression.Name);
 				AddNodeToRewrite(nodeAssignment.Right);
 			}
@@ -47,8 +48,7 @@ namespace tModPorter.Rewriters.AssignmentRewriters {
 		public override SyntaxNode RewriteNode(SyntaxNode node)
 		{
 			// Do different rewrites depending on the node
-			return node switch
-			{
+			return node switch {
 				AssignmentExpressionSyntax => CommentOutFalseAssigment(node),
 				IdentifierNameSyntax {Parent: MemberAccessExpressionSyntax} fieldIdentifier => RewriteAccessField(fieldIdentifier),
 				LiteralExpressionSyntax {RawKind: (int) SyntaxKind.FalseLiteralExpression or (int) SyntaxKind.TrueLiteralExpression}
@@ -60,7 +60,7 @@ namespace tModPorter.Rewriters.AssignmentRewriters {
 		private static SyntaxNode CommentOutFalseAssigment(SyntaxNode oldNode)
 		{
 			if (oldNode is not AssignmentExpressionSyntax assigment) return oldNode;
-			
+
 			SyntaxTriviaList leadingTrivia = assigment.GetLeadingTrivia().Add(Comment("// "));
 			ExpressionSyntax commentedNde = assigment.WithLeadingTrivia(leadingTrivia);
 			return commentedNde;

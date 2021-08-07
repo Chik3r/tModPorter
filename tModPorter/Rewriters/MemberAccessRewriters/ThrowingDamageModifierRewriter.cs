@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters {
-	public class ThrowingDamageModifierRewriter : SimpleModifierRewriter {
+namespace tModPorter.Rewriters.MemberAccessRewriters
+{
+	public class ThrowingDamageModifierRewriter : SimpleModifierRewriter
+	{
 		public ThrowingDamageModifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
@@ -14,7 +16,8 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 		protected override ModifierType ModifierType => ModifierType.Damage;
 	}
 
-	public class ThrowingCritModifierRewriter : SimpleModifierRewriter {
+	public class ThrowingCritModifierRewriter : SimpleModifierRewriter
+	{
 		public ThrowingCritModifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)

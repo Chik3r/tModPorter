@@ -5,10 +5,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.InvocationRewriters {
-	public class FindTypeRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.InvocationRewriters
+{
+	public class FindTypeRewriter : BaseRewriter
+	{
 		// A dictionary to convert old 'Mod.XType("Name")' to the new 'Mod.Find<XType>("Name")'
-		private Dictionary<string, string> _modTypes = new() {
+		private readonly Dictionary<string, string> _modTypes = new() {
 			{"BuffType", "ModBuff"},
 			{"DustType", "ModDust"},
 			{"ItemType", "ModItem"},
@@ -29,13 +31,14 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 
 		public override RewriterType RewriterType => RewriterType.Invocation;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			if (node is not InvocationExpressionSyntax nodeSyntax)
 				return;
 
 			// Support nullable invocations
-			var memberAccess = nodeSyntax.Expression as MemberAccessExpressionSyntax;
-			var memberBinding = nodeSyntax.Expression as MemberBindingExpressionSyntax;
+			MemberAccessExpressionSyntax memberAccess = nodeSyntax.Expression as MemberAccessExpressionSyntax;
+			MemberBindingExpressionSyntax memberBinding = nodeSyntax.Expression as MemberBindingExpressionSyntax;
 			if (memberAccess == null && memberBinding == null)
 				return;
 
@@ -48,12 +51,13 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 				AddNodeToRewrite(nodeSyntax);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			var nodeSyntax = (InvocationExpressionSyntax) node;
-			var memberAccess = nodeSyntax.Expression as MemberAccessExpressionSyntax;
-			var memberBinding = nodeSyntax.Expression as MemberBindingExpressionSyntax;
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			InvocationExpressionSyntax nodeSyntax = (InvocationExpressionSyntax) node;
+			MemberAccessExpressionSyntax memberAccess = nodeSyntax.Expression as MemberAccessExpressionSyntax;
+			MemberBindingExpressionSyntax memberBinding = nodeSyntax.Expression as MemberBindingExpressionSyntax;
 
-			var modType = _modTypes.First(m =>
+			KeyValuePair<string, string> modType = _modTypes.First(m =>
 				(m.Key == memberAccess?.Name.ToString()) || (m.Key == memberBinding?.Name.ToString()));
 
 			// Replace 'mod' with 'Mod'
@@ -63,20 +67,22 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 			// Replace depending on the type of the expression
 			if (memberAccess != null) {
 				// Replace the old 'XType' with the new 'Find<XType>'
-				var newMemberExpression = memberAccess.WithName(IdentifierName($"Find<{modType.Value}>"));
-				var newNode = nodeSyntax.WithExpression(newMemberExpression);
+				MemberAccessExpressionSyntax newMemberExpression = memberAccess.WithName(IdentifierName($"Find<{modType.Value}>"));
+				InvocationExpressionSyntax newNode = nodeSyntax.WithExpression(newMemberExpression);
 
 				// Add .Type at the end
-				var newMember = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newNode, IdentifierName("Type"));
+				MemberAccessExpressionSyntax newMember =
+					MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newNode, IdentifierName("Type"));
 				return newMember;
 			}
 			else {
 				// Replace the old 'XType' with the new 'Find<XType>'
-				var newMemberExpression = memberBinding.WithName(IdentifierName($"Find<{modType.Value}>"));
-				var newNode = nodeSyntax.WithExpression(newMemberExpression);
+				MemberBindingExpressionSyntax newMemberExpression = memberBinding.WithName(IdentifierName($"Find<{modType.Value}>"));
+				InvocationExpressionSyntax newNode = nodeSyntax.WithExpression(newMemberExpression);
 
 				// Add .Type at the end
-				var newMember = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newNode, IdentifierName("Type"));
+				MemberAccessExpressionSyntax newMember =
+					MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, newNode, IdentifierName("Type"));
 				return newMember;
 			}
 		}

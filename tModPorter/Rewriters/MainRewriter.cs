@@ -5,29 +5,33 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace tModPorter.Rewriters {
-	public class MainRewriter : CSharpSyntaxRewriter {
+namespace tModPorter.Rewriters
+{
+	public class MainRewriter : CSharpSyntaxRewriter
+	{
 		private readonly HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite = new();
-		private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite = new();
 		private readonly ILookup<RewriterType, BaseRewriter> _rewriterLookup;
+		private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite = new();
 		private readonly List<string> _usingList = new();
 		private SemanticModel _model;
 
-		public MainRewriter(SemanticModel model) {
+		public MainRewriter(SemanticModel model)
+		{
 			_model = model;
 
 			Type baseType = typeof(BaseRewriter);
-			var types = AppDomain.CurrentDomain.GetAssemblies()
+			IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies()
 				.SelectMany(a => a.GetTypes())
 				.Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
 
-			var rewriters = types
+			List<BaseRewriter> rewriters = types
 				.Select(type => (BaseRewriter) Activator.CreateInstance(type, _model, _usingList, _nodesToRewrite, _tokensToRewrite))
 				.ToList();
 			_rewriterLookup = rewriters.ToLookup(r => r.RewriterType);
 		}
 
-		public SyntaxNode RewriteNodes(SyntaxNode rootNode) {
+		public SyntaxNode RewriteNodes(SyntaxNode rootNode)
+		{
 			Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
 			foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in _nodesToRewrite) {
 				SyntaxNode newNode = rewriter.RewriteNode(originalNode);
@@ -35,21 +39,21 @@ namespace tModPorter.Rewriters {
 			}
 
 			Dictionary<SyntaxToken, SyntaxToken> tokenDictionary = new();
-			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in _tokensToRewrite)
-			{
+			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in _tokensToRewrite) {
 				SyntaxToken newToken = rewriter.RewriteToken(originalToken);
 				tokenDictionary.Add(originalToken, newToken);
 			}
 
 			rootNode = rootNode.ReplaceSyntax(
 				nodes: nodeDictionary.Keys.AsEnumerable(), (original, _) => nodeDictionary[original],
-                tokens: tokenDictionary.Keys.AsEnumerable(), (original, _) => tokenDictionary[original],
-                trivia: Array.Empty<SyntaxTrivia>(), (original, _) => original);
+				tokens: tokenDictionary.Keys.AsEnumerable(), (original, _) => tokenDictionary[original],
+				trivia: Array.Empty<SyntaxTrivia>(), (original, _) => original);
 
 			return rootNode;
 		}
 
-		private SyntaxNode VisitRewriters(RewriterType type, SyntaxNode node) {
+		private SyntaxNode VisitRewriters(RewriterType type, SyntaxNode node)
+		{
 			// Uncomment this if you only want to port identifiers like "npc" or "item"
 			//if (type != RewriterType.Identifier)
 			//{
@@ -57,14 +61,15 @@ namespace tModPorter.Rewriters {
 			//	return true;
 			//}
 
-			foreach (var rewriter in _rewriterLookup[type]) {
+			foreach (BaseRewriter rewriter in _rewriterLookup[type]) {
 				rewriter.VisitNode(node);
 			}
 
 			return node;
 		}
 
-		internal CompilationUnitSyntax AddUsings(CompilationUnitSyntax syntax) {
+		internal CompilationUnitSyntax AddUsings(CompilationUnitSyntax syntax)
+		{
 			List<UsingDirectiveSyntax> usingDirectives = new();
 			foreach (string usingName in _usingList.Where(us => !syntax.Usings.Select(oldUsing => oldUsing.Name.ToString()).Contains(us)))
 				usingDirectives.Add(SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName(" " + usingName))

@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MethodDeclarationRewriters {
-	public class AddRecipesRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.MethodDeclarationRewriters
+{
+	public class AddRecipesRewriter : BaseRewriter
+	{
 		public AddRecipesRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
@@ -14,7 +16,8 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 
 		public override RewriterType RewriterType => RewriterType.Method;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			if (node is not MethodDeclarationSyntax nodeMethod)
 				return;
 
@@ -24,10 +27,11 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 				AddNodeToRewrite(node);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
-			var nodeMethod = (MethodDeclarationSyntax) node;
-			var leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
-			var newStatements = new SyntaxList<StatementSyntax>();
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
+			MethodDeclarationSyntax nodeMethod = (MethodDeclarationSyntax) node;
+			SyntaxTriviaList leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
+			SyntaxList<StatementSyntax> newStatements = new SyntaxList<StatementSyntax>();
 
 			string expression = "";
 			int resultAmount = 1;
@@ -46,11 +50,11 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 					case "AddIngredient":
 					case "AddTile":
 					case "AddRecipeGroup":
-						var splitExpression = invocationExpressionSyntax.ToString().Split('.', 2);
+						string[] splitExpression = invocationExpressionSyntax.ToString().Split('.', 2);
 						expression += "." + splitExpression[1];
 						break;
 					case "SetResult":
-						var arguments = invocationExpressionSyntax.ArgumentList.Arguments.Select(a => a.ToString()).ToArray();
+						string[] arguments = invocationExpressionSyntax.ArgumentList.Arguments.Select(a => a.ToString()).ToArray();
 
 						if (arguments[0] != "this")
 							result = arguments[0];
@@ -58,7 +62,7 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 							resultAmount = int.Parse(arguments[1]);
 						break;
 					case "AddRecipe":
-						var parsedExpression = $"CreateRecipe({resultAmount})" + expression;
+						string parsedExpression = $"CreateRecipe({resultAmount})" + expression;
 
 						if (string.IsNullOrEmpty(result))
 							parsedExpression += ".Register()";
@@ -75,7 +79,7 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 				}
 			}
 
-			var modifierBody = nodeMethod.Body.WithStatements(newStatements);
+			BlockSyntax modifierBody = nodeMethod.Body.WithStatements(newStatements);
 			return nodeMethod.WithBody(modifierBody);
 		}
 	}

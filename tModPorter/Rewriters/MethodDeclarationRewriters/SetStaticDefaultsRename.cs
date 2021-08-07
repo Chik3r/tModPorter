@@ -19,7 +19,7 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters
 			"ModMount",
 			"ModPrefix",
 		};
-		
+
 		public SetStaticDefaultsRename(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)

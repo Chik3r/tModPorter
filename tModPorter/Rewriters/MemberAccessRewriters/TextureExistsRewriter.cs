@@ -3,7 +3,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters {
+namespace tModPorter.Rewriters.MemberAccessRewriters
+{
 	public class TextureExistsRewriter : BaseRewriter
 	{
 		public TextureExistsRewriter(SemanticModel model, List<string> usingList,
@@ -30,7 +31,7 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 			if (node is not IdentifierNameSyntax) return node;
 
 			SyntaxNode newNode = IdentifierName("HasAsset").WithTriviaFrom(node);
-			
+
 			return newNode;
 		}
 	}

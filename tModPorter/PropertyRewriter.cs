@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace tModPorter {
-	public class PropertyRewriter : CSharpSyntaxRewriter {
+namespace tModPorter
+{
+	public class PropertyRewriter : CSharpSyntaxRewriter
+	{
 		public static readonly Dictionary<string, string> IdentifiersToRename = new Dictionary<string, string> {
 			{"item", "Item"},
 			{"mod", "Mod"},
@@ -86,14 +88,15 @@ namespace tModPorter {
 		public List<string> UsingsToAdd = new List<string>();
 		public PropertyRewriter(SemanticModel model) => _semanticModel = model;
 
-		public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node) {
+		public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+		{
 			if (IdentifiersToRename.TryGetValue(node.Identifier.Text, out string newIdentifier)) {
 				// Only replace if the symbol wasn't found
-				var symbol = _semanticModel.GetSymbolInfo(node).Symbol;
+				ISymbol? symbol = _semanticModel.GetSymbolInfo(node).Symbol;
 				if (symbol == null) {
-					var leadingTrivia = node.GetLeadingTrivia();
-					var trailingTrivia = node.GetTrailingTrivia();
-					var identifierSyntax = SyntaxFactory.Identifier(leadingTrivia, newIdentifier, trailingTrivia);
+					SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
+					SyntaxTriviaList trailingTrivia = node.GetTrailingTrivia();
+					SyntaxToken identifierSyntax = SyntaxFactory.Identifier(leadingTrivia, newIdentifier, trailingTrivia);
 
 					return SyntaxFactory.IdentifierName(identifierSyntax);
 				}
@@ -102,7 +105,8 @@ namespace tModPorter {
 			return base.VisitIdentifierName(node);
 		}
 
-		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node) {
+		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
+		{
 			// Change return type of UseItem to bool?
 			//if (node.Identifier.Text == "UseItem")
 			//{
@@ -111,17 +115,17 @@ namespace tModPorter {
 
 			if (MethodsToRename.TryGetValue(node.Identifier.Text, out string newIdentifier)) {
 				// Only replace if the symbol wasn't found
-				var symbol = _semanticModel.GetSymbolInfo(node).Symbol;
+				ISymbol? symbol = _semanticModel.GetSymbolInfo(node).Symbol;
 				if (symbol == null) {
-					var trailing = node.Identifier.TrailingTrivia;
-					var leading = node.Identifier.LeadingTrivia;
-					var identifier = SyntaxFactory.Identifier(leading, newIdentifier, trailing);
+					SyntaxTriviaList trailing = node.Identifier.TrailingTrivia;
+					SyntaxTriviaList leading = node.Identifier.LeadingTrivia;
+					SyntaxToken identifier = SyntaxFactory.Identifier(leading, newIdentifier, trailing);
 					return node.WithIdentifier(identifier);
 				}
 			}
 
 			if (node.Identifier.Text == "AddRecipes" && node.Body.Statements.Count != 0) {
-				var leading = node.Body.Statements.First().GetLeadingTrivia();
+				SyntaxTriviaList leading = node.Body.Statements.First().GetLeadingTrivia();
 				SyntaxList<StatementSyntax> newStatements = new SyntaxList<StatementSyntax>();
 				//ExpressionSyntax recipeExpression = null;
 
@@ -168,22 +172,24 @@ namespace tModPorter {
 					result = "";
 				}
 
-				var modifierBody = node.Body.WithStatements(newStatements);
+				BlockSyntax modifierBody = node.Body.WithStatements(newStatements);
 				return node.WithBody(modifierBody);
 			}
 
 			return base.VisitMethodDeclaration(node);
 		}
 
-		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) {
+		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+		{
 			if (node.ParameterList == null)
 				return base.VisitAnonymousMethodExpression(node);
 
 			// If the delegate contains any parameter in AnonymousMethodToAddParameter, add a new parameter
 			foreach (ParameterSyntax parameter in node.ParameterList.Parameters) {
 				if (AnonymousMethodToAddParameter.Any(p => parameter.ToString().Contains(p.Key))) {
-					var newParameter = AnonymousMethodToAddParameter.First(p => parameter.ToString().Contains(p.Key));
-					var newIdentifier = SyntaxFactory.Identifier(newParameter.Value);
+					KeyValuePair<string, string> newParameter =
+						AnonymousMethodToAddParameter.First(p => parameter.ToString().Contains(p.Key));
+					SyntaxToken newIdentifier = SyntaxFactory.Identifier(newParameter.Value);
 
 					if (node.ParameterList.Parameters.Any(p => p.ToString() == newParameter.Value.Trim()))
 						return base.VisitAnonymousMethodExpression(node);
@@ -200,10 +206,11 @@ namespace tModPorter {
 			return base.VisitAnonymousMethodExpression(node);
 		}
 
-		public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node) {
+		public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+		{
 			if (MemberAccessToRename.TryGetValue(node.ToString(), out string newIdentifier)) {
 				// Only replace if the symbol wasn't found
-				var symbol = _semanticModel.GetSymbolInfo(node).Symbol;
+				ISymbol? symbol = _semanticModel.GetSymbolInfo(node).Symbol;
 				if (symbol != null)
 					return base.VisitMemberAccessExpression(node);
 
@@ -214,7 +221,7 @@ namespace tModPorter {
 				}
 
 				// Modify the node
-				var splitIdentifier = newIdentifier.Split(new[] {"."}, 2, StringSplitOptions.None);
+				string[] splitIdentifier = newIdentifier.Split(new[] {"."}, 2, StringSplitOptions.None);
 				node = node.WithExpression(SyntaxFactory.ParseExpression(splitIdentifier[0])
 					.WithTrailingTrivia(node.Expression.GetTrailingTrivia()).WithLeadingTrivia(node.Expression.GetLeadingTrivia()));
 				node = node.WithName(SyntaxFactory.IdentifierName(splitIdentifier[1]));
@@ -224,7 +231,8 @@ namespace tModPorter {
 			return base.VisitMemberAccessExpression(node);
 		}
 
-		public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node) {
+		public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+		{
 			if (AssignmentsToModify.TryGetValue(node.ToString().ToLower(), out string newAssignment)) {
 				return SyntaxFactory.IdentifierName(newAssignment).WithLeadingTrivia(node.GetLeadingTrivia())
 					.WithTrailingTrivia(node.GetTrailingTrivia());
@@ -233,10 +241,11 @@ namespace tModPorter {
 			return base.VisitAssignmentExpression(node);
 		}
 
-		public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node) {
-			var nodeText = node.ToFullString();
-			var trailing = node.GetTrailingTrivia();
-			var leading = node.GetLeadingTrivia();
+		public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
+		{
+			string nodeText = node.ToFullString();
+			SyntaxTriviaList trailing = node.GetTrailingTrivia();
+			SyntaxTriviaList leading = node.GetLeadingTrivia();
 
 			// Replace "Terraria.World.Generation" with "Terraria.WorldBuilding"
 			if (nodeText.Contains("Terraria.World.Generation"))

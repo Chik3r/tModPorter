@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.InvocationRewriters {
-	public class GetAssetRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.InvocationRewriters
+{
+	public class GetAssetRewriter : BaseRewriter
+	{
 		private Dictionary<string, (string type, string addUsing)> _methodToType = new() {
 			{"GetTexture", ("Texture2D", "Microsoft.Xna.Framework.Graphics")},
 			{"GetEffect", ("Effect", "Microsoft.Xna.Framework.Graphics")}
@@ -19,7 +21,8 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 
 		public override RewriterType RewriterType => RewriterType.Invocation;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			if (node is not InvocationExpressionSyntax invocation) return;
 
 			if (invocation.ArgumentList.Arguments.Count != 1) return;
@@ -29,7 +32,8 @@ namespace tModPorter.Rewriters.InvocationRewriters {
 			AddNodeToRewrite(invocation);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
 			if (node is not InvocationExpressionSyntax invocation) return node;
 			MemberAccessExpressionSyntax accessExpression = (MemberAccessExpressionSyntax) invocation.Expression;
 

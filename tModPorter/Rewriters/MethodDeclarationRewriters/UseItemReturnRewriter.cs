@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MethodDeclarationRewriters {
-	public class UseItemReturnRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.MethodDeclarationRewriters
+{
+	public class UseItemReturnRewriter : BaseRewriter
+	{
 		public UseItemReturnRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
@@ -14,7 +16,8 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 
 		public override RewriterType RewriterType => RewriterType.Method;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			if (node is not MethodDeclarationSyntax mDec) return;
 
 			// Check if the return type of the method is nullable, or not a boolean
@@ -26,7 +29,8 @@ namespace tModPorter.Rewriters.MethodDeclarationRewriters {
 			AddNodeToRewrite(node);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
 			if (node is not MethodDeclarationSyntax mDec) return node;
 
 			NullableTypeSyntax newReturnType = NullableType(PredefinedType(Token(SyntaxKind.BoolKeyword)));

@@ -3,8 +3,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.IdentifierRewriters {
-	public abstract class SimpleIdentifierRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.IdentifierRewriters
+{
+	public abstract class SimpleIdentifierRewriter : BaseRewriter
+	{
 		protected SimpleIdentifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
@@ -17,7 +19,8 @@ namespace tModPorter.Rewriters.IdentifierRewriters {
 
 		public sealed override RewriterType RewriterType => RewriterType.Identifier;
 
-		public sealed override void VisitNode(SyntaxNode node) {
+		public sealed override void VisitNode(SyntaxNode node)
+		{
 			if (node is not IdentifierNameSyntax identifier) return;
 
 			if (node.Parent is AssignmentExpressionSyntax or VariableDeclaratorSyntax) return;

@@ -6,12 +6,15 @@ using tModPorter.Rewriters;
 using tModPorter.Rewriters.InvocationRewriters;
 using Xunit;
 
-namespace tModPorter.Tests.RewriterTests {
-	public class FindTypeRewriterTest {
+namespace tModPorter.Tests.RewriterTests
+{
+	public class FindTypeRewriterTest
+	{
 		[Theory]
 		[InlineData("TestData/FindTypeRewriterTest/None.cs", 0)]
 		[InlineData("TestData/FindTypeRewriterTest/All.cs", 10)]
-		public void VisitNode_ShouldMatchNodeCount(string filePath, int numNodes) {
+		public void VisitNode_ShouldMatchNodeCount(string filePath, int numNodes)
+		{
 			string source = File.ReadAllText(filePath);
 			CreateSimpleRewriter(source, out FindTypeRewriter rewriter,
 				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
@@ -24,7 +27,8 @@ namespace tModPorter.Tests.RewriterTests {
 
 		[Theory]
 		[InlineData("TestData/FindTypeRewriterTest/All.cs", "TestData/FindTypeRewriterTest/All.Fix.cs")]
-		public void RewriteNode_InputShouldMatchTarget(string inputFile, string targetFile) {
+		public void RewriteNode_InputShouldMatchTarget(string inputFile, string targetFile)
+		{
 			string source = File.ReadAllText(inputFile);
 			string target = File.ReadAllText(targetFile);
 			CreateSimpleRewriter(source, out FindTypeRewriter damageClassRewriter,
@@ -39,7 +43,8 @@ namespace tModPorter.Tests.RewriterTests {
 		}
 
 		private void CreateSimpleRewriter(string source, out FindTypeRewriter rewriter,
-			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root) {
+			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root)
+		{
 			Utils.CreateCSharpCompilation(source, nameof(FindTypeRewriterTest), out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();

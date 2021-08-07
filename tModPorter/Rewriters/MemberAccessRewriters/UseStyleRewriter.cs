@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters {
-	public class UseStyleRewriter : BaseRewriter {
+namespace tModPorter.Rewriters.MemberAccessRewriters
+{
+	public class UseStyleRewriter : BaseRewriter
+	{
 		private readonly Dictionary<string, string> _useStyleToPort = new() {
 			{"HoldingUp", "HoldUp"},
 			{"HoldingOut", "Shoot"},
@@ -22,7 +24,8 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 
 		public override RewriterType RewriterType => RewriterType.MemberAccess;
 
-		public override void VisitNode(SyntaxNode node) {
+		public override void VisitNode(SyntaxNode node)
+		{
 			if (node is not MemberAccessExpressionSyntax memberAccess)
 				return;
 
@@ -36,11 +39,12 @@ namespace tModPorter.Rewriters.MemberAccessRewriters {
 				AddNodeToRewrite(memberAccess.Name);
 		}
 
-		public override SyntaxNode RewriteNode(SyntaxNode node) {
+		public override SyntaxNode RewriteNode(SyntaxNode node)
+		{
 			if (node is not SimpleNameSyntax nameSyntax)
 				return node;
 
-			var newUseStyle = _useStyleToPort.First(u => u.Key == nameSyntax.ToString());
+			KeyValuePair<string, string> newUseStyle = _useStyleToPort.First(u => u.Key == nameSyntax.ToString());
 			return IdentifierName(newUseStyle.Value).WithExtraTrivia(nameSyntax);
 		}
 	}

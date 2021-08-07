@@ -16,17 +16,18 @@ namespace tModPorter.Tests.RewriterTests
 			// Get source code from .cs files
 			string source = File.ReadAllText("TestData/SetStaticDefaultsTest/Simple.cs");
 			string target = File.ReadAllText("TestData/SetStaticDefaultsTest/Simple.Fix.cs");
-			
+
 			// Create compilation for .cs source
-			Utils.CreateCSharpCompilation(source, nameof(SetStaticDefaultsTest), out _, out CompilationUnitSyntax root, out SemanticModel model);
+			Utils.CreateCSharpCompilation(source, nameof(SetStaticDefaultsTest), out _, out CompilationUnitSyntax root,
+				out SemanticModel model);
 
 			// Create a rewriter
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokenDict = new();
 			BaseRewriter rewriter = new SetStaticDefaultsRename(model, null, null, tokenDict);
-			
+
 			foreach (SyntaxNode assigmentNode in root.DescendantNodes())
 				rewriter.VisitNode(assigmentNode);
-			
+
 			Assert.Equal(2, tokenDict.Count);
 
 			root = root.RewriteMultipleNodes(null, tokenDict);

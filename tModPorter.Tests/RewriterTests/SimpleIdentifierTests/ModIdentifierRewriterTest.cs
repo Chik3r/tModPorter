@@ -3,7 +3,8 @@ using Microsoft.CodeAnalysis;
 using tModPorter.Rewriters;
 using tModPorter.Rewriters.IdentifierRewriters;
 
-namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests {
+namespace tModPorter.Tests.RewriterTests.SimpleIdentifierTests
+{
 	public sealed class ModIdentifierRewriterTest : BaseIdentifierTest
 	{
 		protected override SimpleIdentifierRewriter CreateIdentifierRewriter(SemanticModel model,

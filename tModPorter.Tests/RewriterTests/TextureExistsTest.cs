@@ -17,7 +17,7 @@ namespace tModPorter.Tests.RewriterTests
 		{
 			CreateSimpleRewriter(statement, out TextureExistsRewriter rewriter,
 				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
-			
+
 			foreach (SyntaxNode assigmentNode in root.DescendantNodes())
 				rewriter.VisitNode(assigmentNode);
 
@@ -29,20 +29,21 @@ namespace tModPorter.Tests.RewriterTests
 		{
 			const string statement = "ModContent.TextureExists(\"string\")";
 			const string target = "ModContent.HasAsset(\"string\")";
-			
+
 			CreateSimpleRewriter(statement, out TextureExistsRewriter rewriter,
 				out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root);
-			
+
 			foreach (SyntaxNode assigmentNode in root.DescendantNodes())
 				rewriter.VisitNode(assigmentNode);
-			
+
 			root = root.RewriteMultipleNodes(nodeSet);
 
 			Assert.Equal(target, root.ToFullString());
 		}
-		
+
 		private static void CreateSimpleRewriter(string source, out TextureExistsRewriter rewriter,
-			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root) {
+			out HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodeSet, out CompilationUnitSyntax root)
+		{
 			Utils.CreateCSharpCompilation(source, nameof(FindTypeRewriterTest), out _, out root, out SemanticModel model);
 
 			nodeSet = new HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)>();
