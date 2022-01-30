@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis;
 
 namespace tModPorter.Rewriters.IdentifierRewriters
 {
-	public class WallypeIdentifierRewriter : SimpleIdentifierRewriter
+	public class WallTypeIdentifierRewriter : SimpleIdentifierRewriter
 	{
-		public WallypeIdentifierRewriter(SemanticModel model, List<string> usingList,
+		public WallTypeIdentifierRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
 			: base(model, usingList, nodesToRewrite, tokensToRewrite)
