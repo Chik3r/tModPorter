@@ -23,10 +23,19 @@ namespace tModPorter
 
 			// Print message for WorkspaceFailed event to help diagnosing project load failures.
 			workspace.WorkspaceFailed += (o, e) => {
-				ForegroundColor = ConsoleColor.Red;
+				if (e.Diagnostic.Message.Contains(@"Steamworks.NET.dll"", ""AMD64"""))
+					return; 
+
+				if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Warning)
+					ForegroundColor = ConsoleColor.Yellow;
+				else				
+					ForegroundColor = ConsoleColor.Red;
+
 				WriteLine(e.Diagnostic.Message);
 				ForegroundColor = ConsoleColor.Gray;
-				ReadKey();
+
+				if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+					ReadKey();
 			};
 
 			string projectPath = GetProjectPath(args);
