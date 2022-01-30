@@ -34,12 +34,11 @@ namespace tModPorter.Rewriters.AssignmentRewriters
 			if (nodeAssignment.Left is not MemberAccessExpressionSyntax accessExpression)
 				return;
 
-			if (nodeAssignment.Right.Kind() == SyntaxKind.FalseLiteralExpression) {
-				AddNodeToRewrite(nodeAssignment);
-				return;
-			}
-
 			if (_fieldToDamageClass.Any(f => f.Key == accessExpression.Name.ToString())) {
+				if (nodeAssignment.Right.Kind() == SyntaxKind.FalseLiteralExpression) {
+					AddNodeToRewrite(nodeAssignment);
+					return;
+				}
 				AddNodeToRewrite(accessExpression.Name);
 				AddNodeToRewrite(nodeAssignment.Right);
 			}
