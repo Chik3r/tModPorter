@@ -20,9 +20,7 @@ namespace tModPorter.Rewriters
 			_model = model;
 
 			Type baseType = typeof(BaseRewriter);
-			IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies()
-				.SelectMany(a => a.GetTypes())
-				.Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
+			IEnumerable<Type> types = baseType.Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
 
 			List<BaseRewriter> rewriters = types
 				.Select(type => (BaseRewriter) Activator.CreateInstance(type, _model, _usingList, _nodesToRewrite, _tokensToRewrite))
