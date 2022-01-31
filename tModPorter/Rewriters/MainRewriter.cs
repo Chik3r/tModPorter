@@ -68,7 +68,7 @@ namespace tModPorter.Rewriters
 			return node;
 		}
 
-		internal CompilationUnitSyntax AddUsings(CompilationUnitSyntax syntax)
+		public CompilationUnitSyntax AddUsingDirectives(CompilationUnitSyntax syntax)
 		{
 			List<UsingDirectiveSyntax> usingDirectives = new();
 			foreach (string usingName in _usingList.Where(us => !syntax.Usings.Select(oldUsing => oldUsing.Name.ToString()).Contains(us)))

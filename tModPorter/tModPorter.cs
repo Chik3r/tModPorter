@@ -79,7 +79,7 @@ namespace tModPorter
 			rewriter.Visit(rootNode);
 			// Modify all nodes
 			CompilationUnitSyntax result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
-			result = rewriter.AddUsings(result);
+			result = rewriter.AddUsingDirectives(result);
 
 			if (!result.IsEquivalentTo(rootNode) && document.FilePath != null) {
 				Encoding encoding;
