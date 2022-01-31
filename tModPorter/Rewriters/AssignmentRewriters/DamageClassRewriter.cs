@@ -61,8 +61,14 @@ namespace tModPorter.Rewriters.AssignmentRewriters
 			if (oldNode is not AssignmentExpressionSyntax assigment) return oldNode;
 
 			SyntaxTriviaList leadingTrivia = assigment.GetLeadingTrivia().Add(Comment("// "));
-			ExpressionSyntax commentedNde = assigment.WithLeadingTrivia(leadingTrivia);
-			return commentedNde;
+			
+			// This will place the "... redundant ..." comment before the semicolon (moving it to the end of the line)
+			// It could be fixed by rewriting the trivia of the parent node, but I'd prefer not to do that.
+			SyntaxTriviaList trailingTrivia = assigment.GetTrailingTrivia().Insert(0,
+				Comment(" // tModPorter - this is redundant, for more info see https://github.com/tModLoader/tModLoader/wiki/Update-Migration-Guide#damage-classes"));
+			
+			ExpressionSyntax commentedNode = assigment.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
+			return commentedNode;
 		}
 
 		SyntaxNode RewriteAccessField(SyntaxNode oldNode)
