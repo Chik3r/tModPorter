@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using tModPorter.Rewriters;
+using UtfUnknown;
 using static System.Console;
 
 namespace tModPorter
@@ -82,8 +83,12 @@ namespace tModPorter
 
 			if (!result.IsEquivalentTo(rootNode) && document.FilePath != null) {
 				Encoding encoding;
-				await using (Stream fs = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read))
-					encoding = EncodingUtils.DetectEncoding(fs);
+				await using (Stream fs = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read)) {
+					DetectionResult detectionResult = CharsetDetector.DetectFromStream(fs);
+					encoding = detectionResult.Detected.Encoding;
+					if (detectionResult.Detected.Confidence < .95f)
+						WriteLine($"Less than 95% confidence about the file encoding of: {document.FilePath}");
+				}
 
 				await File.WriteAllTextAsync(document.FilePath, result.ToFullString(), encoding);
 			}
