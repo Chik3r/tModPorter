@@ -14,9 +14,8 @@ public class AutomaticTest
     [Fact]
     public void RewriteCode()
     {
-        List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.TopDirectoryOnly).Where(x => !x.Contains(".Fix.cs")));
+        List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.AllDirectories).Where(x => !x.Contains(".Fix.cs")));
         Assert.NotEmpty(testFiles);
-        testFiles.AddRange(Directory.GetFiles("TestData/Common/", "*", SearchOption.TopDirectoryOnly));
 
         List<SyntaxTree> trees = new(testFiles.Count);
         foreach (string filePath in testFiles) {
@@ -28,7 +27,9 @@ public class AutomaticTest
 
         CSharpCompilation compilation = CSharpCompilation.Create("TestAssembly", trees, references);
 
-        foreach (SyntaxTree tree in trees.Where(x => !x.FilePath.Contains("TestData/Common/")))
+        IEnumerable<SyntaxTree> treesToFix =
+            trees.Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
+        foreach (SyntaxTree tree in treesToFix)
         {
             SemanticModel model = compilation.GetSemanticModel(tree);
             SyntaxNode rootNode = tree.GetRoot();
