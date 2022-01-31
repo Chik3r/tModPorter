@@ -12,6 +12,19 @@ public class Projectile
 
 public class Player { }
 
-public class Item { }
+public class Item
+{
+    public DamageClass DamageType;
+}
 
 public class NPC { }
+
+// Works as well as the actual thing for testing
+enum DamageClass
+{
+    Melee,
+    Magic,
+    Summon,
+    Ranged,
+    Throwing,
+}
