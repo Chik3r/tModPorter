@@ -5,17 +5,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using tModPorter.Rewriters;
-using Xunit;
+using NUnit.Framework;
 
 namespace tModPorter.Tests;
 
 public class AutomaticTest
 {
-    [Fact]
+    [Test]
     public void RewriteCode()
     {
         List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.AllDirectories).Where(x => !x.Contains(".Fix.cs")));
-        Assert.NotEmpty(testFiles);
+        Assert.IsNotEmpty(testFiles);
 
         List<SyntaxTree> trees = new(testFiles.Count);
         foreach (string filePath in testFiles) {
@@ -46,7 +46,7 @@ public class AutomaticTest
             Assert.True(File.Exists(fixedFilePath), $"File '{fixedFilePath}' doesn't exist.");
             string fixedContent = File.ReadAllText(fixedFilePath);
             
-            Assert.Equal(fixedContent, result.ToFullString());
+            Assert.AreEqual(fixedContent, result.ToFullString());
         }
     }
 }
