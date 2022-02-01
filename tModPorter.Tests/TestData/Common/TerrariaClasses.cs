@@ -15,6 +15,7 @@ public class Player { }
 public class Item
 {
     public DamageClass DamageType;
+    public int type;
 }
 
 public class NPC { }
