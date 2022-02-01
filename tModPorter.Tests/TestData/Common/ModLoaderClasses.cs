@@ -12,8 +12,28 @@ public abstract class InheritableMod
 
 public class Mod { }
 
-public class ModItem
+public abstract class ModItem
 {
     public virtual void NetReceive { }
     public virtual bool? UseItem() { }
+}
+
+public abstract class GlobalItem
+{
+    public virtual void PreReforge() { }
+}
+
+public abstract class ModTile
+{
+    public virtual void RightClick() { }
+}
+
+public abstract class GlobalTile
+{
+    public virtual void SetStaticDefaults() { }
+}
+
+public abstract class ModMount
+{
+    public virtual void SetStaticDefaults() { }
 }

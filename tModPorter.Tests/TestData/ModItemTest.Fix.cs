@@ -1,4 +1,6 @@
-﻿namespace tModPorter.Tests.TestData;
+﻿using Terraria.ModLoader;
+
+namespace tModPorter.Tests.TestData;
 
 public class ModItemTest : ModItem
 {

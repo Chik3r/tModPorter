@@ -15,5 +15,8 @@ public class DamageClassTest : InheritableMod
     public void MethodB()
     {
         Item.DamageType = DamageClass.Melee;
+
+        int melee = 0;
+        melee = 1;
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace tModPorter.Tests.TestData.FindTypeRewriterTest
+﻿using Terraria.ModLoader;
+
+namespace tModPorter.Tests.TestData.FindTypeRewriterTest
 {
     public class FindTypeTest : InheritableMod
     {
