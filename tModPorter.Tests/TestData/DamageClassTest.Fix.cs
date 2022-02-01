@@ -2,7 +2,7 @@
 
 namespace tModPorter.Tests.TestData;
 
-public class DamageClass : InheritableMod
+public class DamageClassTest : InheritableMod
 {
     public void MethodA()
     {

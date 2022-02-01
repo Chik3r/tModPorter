@@ -2,7 +2,7 @@
 
 namespace tModPorter.Tests.TestData;
 
-public class SimpleIdentifiers : InheritableMod
+public class SimpleIdentifiersTest : InheritableMod
 {
     public void MethodA()
     {

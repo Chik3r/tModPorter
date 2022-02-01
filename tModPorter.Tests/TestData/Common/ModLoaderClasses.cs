@@ -11,3 +11,9 @@ public abstract class InheritableMod
 }
 
 public class Mod { }
+
+public class ModItem
+{
+    public virtual void NetReceive { }
+    public virtual bool? UseItem() { }
+}
