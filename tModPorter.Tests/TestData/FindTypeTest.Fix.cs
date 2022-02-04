@@ -2,7 +2,7 @@
 
 namespace tModPorter.Tests.TestData.FindTypeRewriterTest
 {
-    public class FindTypeTest : InheritableMod
+    public class FindTypeTest : Mod
     {
         void Method()
         {

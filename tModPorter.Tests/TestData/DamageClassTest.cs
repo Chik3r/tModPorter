@@ -1,8 +1,9 @@
-﻿using Terraria.ModLoader;
+﻿using Terraria;
+using Terraria.ModLoader;
 
 namespace tModPorter.Tests.TestData;
 
-public class DamageClassTest : InheritableMod
+public class DamageClassTest : Mod
 {
     public void MethodA()
     {

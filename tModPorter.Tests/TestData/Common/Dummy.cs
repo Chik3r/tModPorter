@@ -1,4 +1,4 @@
-﻿namespace tModPorter.Tests.TestData.Common;
+﻿namespace Terraria;
 
 public class Dummy
 {

@@ -2,15 +2,13 @@
 
 namespace Terraria.ModLoader;
 
-public abstract class InheritableMod
+public abstract class Mod
 {
     public Player Player { get; set; }
     public Item Item { get; set; }
     public Projectile Projectile { get; set; }
     public NPC NPC { get; set; }
 }
-
-public class Mod { }
 
 public abstract class ModItem
 {
