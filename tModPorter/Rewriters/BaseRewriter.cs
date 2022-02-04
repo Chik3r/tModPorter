@@ -68,6 +68,18 @@ namespace tModPorter.Rewriters
 			}
 		}
 
+		protected string GetTypeName(SyntaxNode node)
+		{
+			TypeInfo info = _model.GetTypeInfo(node);
+			return info.Type switch
+			{
+				IErrorTypeSymbol => null,
+				null => null,
+				IArrayTypeSymbol arrayType => arrayType.ElementType.Name,
+				_ => string.IsNullOrEmpty(info.Type?.Name) ? info.Type?.ToString() : info.Type?.Name
+			};
+		}
+
 		protected static bool TryGetAncestorNode<TNode>(SyntaxNode currentNode, [NotNullWhen(true)] out TNode ancestor)
 			where TNode : SyntaxNode
 		{
