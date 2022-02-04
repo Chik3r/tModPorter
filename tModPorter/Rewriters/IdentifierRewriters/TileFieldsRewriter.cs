@@ -29,12 +29,15 @@ public class TileFieldsRewriter : BaseRewriter
 
         // Only modify member accesses 'a.b'
         if (node.Parent is not MemberAccessExpressionSyntax memberAccess) return;
-        
+
+        SyntaxNode typeNode;
         // Check if the parent node's expression is an array access, example: 'a.b[0].c'
         if (memberAccess.Expression is ElementAccessExpressionSyntax { Expression: MemberAccessExpressionSyntax nestedMember })
-            memberAccess = nestedMember;
-        
-        string typeName = GetTypeName(memberAccess);
+            typeNode = nestedMember;
+        else
+            typeNode = memberAccess.Expression;
+
+        string typeName = GetTypeName(typeNode);
         if (typeName != "Tilemap" && typeName != "Tile") return;
 
         if (IdentifierMap.ContainsKey(identifier.ToString()) && !HasSymbol(node, out _))
