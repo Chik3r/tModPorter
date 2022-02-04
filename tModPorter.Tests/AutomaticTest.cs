@@ -24,7 +24,7 @@ public class AutomaticTest
         _compilation = CSharpCompilation.Create("TestAssembly", Trees, references);
     }
     
-    [TestCaseSource(nameof(GetRewritableSyntaxTrees))]
+    [TestCaseSource(nameof(GetTestCases))]
     public void RewriteCode(SyntaxTree tree)
     {
         SemanticModel model = _compilation.GetSemanticModel(tree);
@@ -61,8 +61,16 @@ public class AutomaticTest
         return Trees;
     }
 
-    public static IEnumerable<SyntaxTree> GetRewritableSyntaxTrees()
+    public static IEnumerable<TestCaseData> GetTestCases()
     {
-        return GetSyntaxTrees().Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
+        IEnumerable<SyntaxTree> syntaxTrees =
+            GetSyntaxTrees().Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
+
+        TestCaseData data;
+        foreach (SyntaxTree tree in syntaxTrees)
+        {
+            data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
+            yield return data;
+        }
     }
 }
