@@ -2,7 +2,7 @@
 
 public class Tile
 {
-    public ushort ItemType;
+    public ushort TileType;
 }
 
 public class Projectile
@@ -19,6 +19,11 @@ public class Item
 }
 
 public class NPC { }
+
+public class Main
+{
+    public static Tile[,] tile;
+}
 
 // Works as well as the actual thing for testing
 enum DamageClass
