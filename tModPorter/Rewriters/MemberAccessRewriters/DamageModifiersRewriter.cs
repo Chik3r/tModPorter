@@ -5,17 +5,26 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.MemberAccessRewriters
 {
-	public abstract class SimpleModifierRewriter : BaseRewriter
+	public class DamageModifiersRewriter : BaseRewriter
 	{
-		protected SimpleModifierRewriter(SemanticModel model, List<string> usingList,
+		private static readonly Dictionary<string, string> IdentifierMap = new()
+		{
+			{ "magicDamage", "DamageClass.Magic" },
+			{ "magicCrit", "DamageClass.Magic" },
+			{ "meleeDamage", "DamageClass.Melee" },
+			{ "meleeCrit", "DamageClass.Melee" },
+			{ "rangedDamage", "DamageClass.Ranged" },
+			{ "rangedCrit", "DamageClass.Ranged" },
+			{ "minionDamage", "DamageClass.Summon" },
+			{ "thrownDamage", "DamageClass.Throwing" },
+			{ "thrownCrit", "DamageClass.Throwing" },
+		};
+		
+		public DamageModifiersRewriter(SemanticModel model, List<string> usingList,
 			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
 			: base(model, usingList, nodesToRewrite, tokensToRewrite)
 		{ }
-
-		protected abstract string NewModifier { get; }
-		protected abstract string OldModifier { get; }
-		protected abstract ModifierType ModifierType { get; }
 
 		public sealed override RewriterType RewriterType => RewriterType.MemberAccess;
 
@@ -24,7 +33,7 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 			if (node is not MemberAccessExpressionSyntax nodeSyntax)
 				return;
 
-			if (nodeSyntax.Name.ToString() == OldModifier && !HasSymbol(nodeSyntax, out _))
+			if (IdentifierMap.ContainsKey(nodeSyntax.Name.ToString()) && !HasSymbol(nodeSyntax, out _))
 				AddNodeToRewrite(nodeSyntax.Name);
 		}
 
@@ -32,21 +41,14 @@ namespace tModPorter.Rewriters.MemberAccessRewriters
 		{
 			if (node is not IdentifierNameSyntax nodeSyntax) return node;
 
-			SyntaxNode newNode;
-			if (ModifierType == ModifierType.Damage)
-				newNode = IdentifierName($"GetDamage({NewModifier})");
-			else
-				newNode = IdentifierName($"GetCritChance({NewModifier})");
+			string newModifier = IdentifierMap[node.ToString()];
+
+			SyntaxNode newNode =
+				IdentifierName(node.ToString().Contains("Damage") ? $"GetDamage({newModifier})" : $"GetCritChance({newModifier})");
 
 			newNode = newNode.WithTriviaFrom(nodeSyntax);
 
 			return newNode;
 		}
-	}
-
-	public enum ModifierType
-	{
-		Damage,
-		CritChance,
 	}
 }
