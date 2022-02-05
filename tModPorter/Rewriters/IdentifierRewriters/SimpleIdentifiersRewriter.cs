@@ -5,7 +5,6 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.IdentifierRewriters
 {
-
     public class SimpleIdentifiersRewriter : BaseRewriter
     {
         private static readonly Dictionary<string, string> IdentifierMap = new()
