@@ -4,38 +4,33 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MethodDeclarationRewriters
-{
-	public class NetReceiveRename : BaseRewriter
-	{
-		public NetReceiveRename(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
-			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
-			: base(model, usingList, nodesToRewrite, tokensToRewrite)
-		{ }
+namespace tModPorter.Rewriters.MethodDeclarationRewriters;
 
-		public override RewriterType RewriterType => RewriterType.Method;
+public class NetReceiveRename : BaseRewriter {
+	public NetReceiveRename(SemanticModel model, List<string> usingList,
+		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
 
-		public override void VisitNode(SyntaxNode node)
-		{
-			if (node is not MethodDeclarationSyntax declaration) return;
+	public override RewriterType RewriterType => RewriterType.Method;
 
-			if (declaration.Identifier.ToString() != "NetRecieve") return;
+	public override void VisitNode(SyntaxNode node) {
+		if (node is not MethodDeclarationSyntax declaration) return;
 
-			// Get class declaration and match base class to ModItem
-			if (!TryGetAncestorNode(node, out ClassDeclarationSyntax classDeclaration) || classDeclaration.BaseList == null ||
-			    classDeclaration.BaseList.Types.Count == 0 ||
-			    classDeclaration.BaseList.Types.All(x => x.Type.ToString() != "ModItem")) return;
+		if (declaration.Identifier.ToString() != "NetRecieve") return;
 
-			AddTokenToRewrite(declaration.Identifier);
-		}
+		// Get class declaration and match base class to ModItem
+		if (!TryGetAncestorNode(node, out ClassDeclarationSyntax classDeclaration) || classDeclaration.BaseList == null ||
+		    classDeclaration.BaseList.Types.Count == 0 ||
+		    classDeclaration.BaseList.Types.All(x => x.Type.ToString() != "ModItem")) return;
 
-		public override SyntaxToken RewriteToken(SyntaxToken token)
-		{
-			if (token.Text != "NetRecieve")
-				return token;
+		AddTokenToRewrite(declaration.Identifier);
+	}
 
-			return Identifier("NetReceive").WithTriviaFrom(token);
-		}
+	public override SyntaxToken RewriteToken(SyntaxToken token) {
+		if (token.Text != "NetRecieve")
+			return token;
+
+		return Identifier("NetReceive").WithTriviaFrom(token);
 	}
 }

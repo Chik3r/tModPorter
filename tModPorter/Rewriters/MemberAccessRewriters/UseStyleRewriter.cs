@@ -4,48 +4,43 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters
-{
-	public class UseStyleRewriter : BaseRewriter
-	{
-		private readonly Dictionary<string, string> _useStyleToPort = new() {
-			{"HoldingUp", "HoldUp"},
-			{"HoldingOut", "Shoot"},
-			{"SwingThrow", "Swing"},
-			{"EatingUsing", "EatFood"},
-			{"Stabbing", "Thrust"},
-		};
+namespace tModPorter.Rewriters.MemberAccessRewriters;
 
-		public UseStyleRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
-			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
-			: base(model, usingList, nodesToRewrite, tokensToRewrite)
-		{ }
+public class UseStyleRewriter : BaseRewriter {
+	private readonly Dictionary<string, string> _useStyleToPort = new() {
+		{"HoldingUp", "HoldUp"},
+		{"HoldingOut", "Shoot"},
+		{"SwingThrow", "Swing"},
+		{"EatingUsing", "EatFood"},
+		{"Stabbing", "Thrust"},
+	};
 
-		public override RewriterType RewriterType => RewriterType.MemberAccess;
+	public UseStyleRewriter(SemanticModel model, List<string> usingList,
+		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
 
-		public override void VisitNode(SyntaxNode node)
-		{
-			if (node is not MemberAccessExpressionSyntax memberAccess)
-				return;
+	public override RewriterType RewriterType => RewriterType.MemberAccess;
 
-			if (HasSymbol(memberAccess.Name, out _))
-				return;
+	public override void VisitNode(SyntaxNode node) {
+		if (node is not MemberAccessExpressionSyntax memberAccess)
+			return;
 
-			if (memberAccess.Expression.ToString() != "ItemUseStyleID")
-				return;
+		if (HasSymbol(memberAccess.Name, out _))
+			return;
 
-			if (_useStyleToPort.ContainsKey(memberAccess.Name.ToString()))
-				AddNodeToRewrite(memberAccess.Name);
-		}
+		if (memberAccess.Expression.ToString() != "ItemUseStyleID")
+			return;
 
-		public override SyntaxNode RewriteNode(SyntaxNode node)
-		{
-			if (node is not SimpleNameSyntax nameSyntax)
-				return node;
+		if (_useStyleToPort.ContainsKey(memberAccess.Name.ToString()))
+			AddNodeToRewrite(memberAccess.Name);
+	}
 
-			KeyValuePair<string, string> newUseStyle = _useStyleToPort.First(u => u.Key == nameSyntax.ToString());
-			return IdentifierName(newUseStyle.Value).WithExtraTrivia(nameSyntax);
-		}
+	public override SyntaxNode RewriteNode(SyntaxNode node) {
+		if (node is not SimpleNameSyntax nameSyntax)
+			return node;
+
+		KeyValuePair<string, string> newUseStyle = _useStyleToPort.First(u => u.Key == nameSyntax.ToString());
+		return IdentifierName(newUseStyle.Value).WithExtraTrivia(nameSyntax);
 	}
 }

@@ -9,68 +9,62 @@ using NUnit.Framework;
 
 namespace tModPorter.Tests;
 
-public class AutomaticTest
-{
-    private Compilation _compilation;
-    private static List<SyntaxTree>? Trees;
-    
-    [OneTimeSetUp]
-    public void Setup()
-    {
-        GetSyntaxTrees();
+public class AutomaticTest {
+	private Compilation _compilation;
+	private static List<SyntaxTree>? Trees;
 
-        MetadataReference[] references = { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) };
+	[OneTimeSetUp]
+	public void Setup() {
+		GetSyntaxTrees();
 
-        _compilation = CSharpCompilation.Create("TestAssembly", Trees, references);
-    }
-    
-    [TestCaseSource(nameof(GetTestCases))]
-    public void RewriteCode(SyntaxTree tree)
-    {
-        SemanticModel model = _compilation.GetSemanticModel(tree);
-        SyntaxNode rootNode = tree.GetRoot();
+		MetadataReference[] references = {MetadataReference.CreateFromFile(typeof(object).Assembly.Location)};
 
-        MainRewriter rewriter = new(model);
-        rewriter.Visit(rootNode);
-        CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
-        
-        Assert.NotNull(result);
-        result = rewriter.AddUsingDirectives(result);
+		_compilation = CSharpCompilation.Create("TestAssembly", Trees, references);
+	}
 
-        string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
-        
-        Assert.True(File.Exists(fixedFilePath), $"File '{fixedFilePath}' doesn't exist.");
-        string fixedContent = File.ReadAllText(fixedFilePath);
-        
-        Assert.AreEqual(fixedContent, result.ToFullString());
-    }
+	[TestCaseSource(nameof(GetTestCases))]
+	public void RewriteCode(SyntaxTree tree) {
+		SemanticModel model = _compilation.GetSemanticModel(tree);
+		SyntaxNode rootNode = tree.GetRoot();
 
-    public static List<SyntaxTree> GetSyntaxTrees()
-    {
-        if (Trees is not null) return Trees;
-        
-        List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.AllDirectories).Where(x => !x.Contains(".Fix.cs")));
-        Assert.IsNotEmpty(testFiles);
+		MainRewriter rewriter = new(model);
+		rewriter.Visit(rootNode);
+		CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
 
-        Trees = new(testFiles.Count);
-        foreach (string filePath in testFiles) {
-            string text = File.ReadAllText(filePath);
-            Trees.Add(CSharpSyntaxTree.ParseText(text, path: filePath));
-        }
+		Assert.NotNull(result);
+		result = rewriter.AddUsingDirectives(result);
 
-        return Trees;
-    }
+		string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
 
-    public static IEnumerable<TestCaseData> GetTestCases()
-    {
-        IEnumerable<SyntaxTree> syntaxTrees =
-            GetSyntaxTrees().Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
+		Assert.True(File.Exists(fixedFilePath), $"File '{fixedFilePath}' doesn't exist.");
+		string fixedContent = File.ReadAllText(fixedFilePath);
 
-        TestCaseData data;
-        foreach (SyntaxTree tree in syntaxTrees)
-        {
-            data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
-            yield return data;
-        }
-    }
+		Assert.AreEqual(fixedContent, result.ToFullString());
+	}
+
+	public static List<SyntaxTree> GetSyntaxTrees() {
+		if (Trees is not null) return Trees;
+
+		List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.AllDirectories).Where(x => !x.Contains(".Fix.cs")));
+		Assert.IsNotEmpty(testFiles);
+
+		Trees = new List<SyntaxTree>(testFiles.Count);
+		foreach (string filePath in testFiles) {
+			string text = File.ReadAllText(filePath);
+			Trees.Add(CSharpSyntaxTree.ParseText(text, path: filePath));
+		}
+
+		return Trees;
+	}
+
+	public static IEnumerable<TestCaseData> GetTestCases() {
+		IEnumerable<SyntaxTree> syntaxTrees =
+			GetSyntaxTrees().Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
+
+		TestCaseData data;
+		foreach (SyntaxTree tree in syntaxTrees) {
+			data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
+			yield return data;
+		}
+	}
 }

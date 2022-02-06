@@ -3,36 +3,31 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters
-{
-	public class TextureExistsRewriter : BaseRewriter
-	{
-		public TextureExistsRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
-			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
-			: base(model, usingList, nodesToRewrite, tokensToRewrite)
-		{ }
+namespace tModPorter.Rewriters.MemberAccessRewriters;
 
-		public override RewriterType RewriterType => RewriterType.MemberAccess;
+public class TextureExistsRewriter : BaseRewriter {
+	public TextureExistsRewriter(SemanticModel model, List<string> usingList,
+		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
 
-		public override void VisitNode(SyntaxNode node)
-		{
-			// Visiting ModContent.TextureExists, only add TextureExists
-			if (node is not MemberAccessExpressionSyntax access) return;
+	public override RewriterType RewriterType => RewriterType.MemberAccess;
 
-			if (access.Name.ToString() != "TextureExists" || access.Expression.ToString() != "ModContent") return;
+	public override void VisitNode(SyntaxNode node) {
+		// Visiting ModContent.TextureExists, only add TextureExists
+		if (node is not MemberAccessExpressionSyntax access) return;
 
-			AddNodeToRewrite(access.Name);
-		}
+		if (access.Name.ToString() != "TextureExists" || access.Expression.ToString() != "ModContent") return;
 
-		public override SyntaxNode RewriteNode(SyntaxNode node)
-		{
-			// Change TextureExists to HasAsset
-			if (node is not IdentifierNameSyntax) return node;
+		AddNodeToRewrite(access.Name);
+	}
 
-			SyntaxNode newNode = IdentifierName("HasAsset").WithTriviaFrom(node);
+	public override SyntaxNode RewriteNode(SyntaxNode node) {
+		// Change TextureExists to HasAsset
+		if (node is not IdentifierNameSyntax) return node;
 
-			return newNode;
-		}
+		SyntaxNode newNode = IdentifierName("HasAsset").WithTriviaFrom(node);
+
+		return newNode;
 	}
 }

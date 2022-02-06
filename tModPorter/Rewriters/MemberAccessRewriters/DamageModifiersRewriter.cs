@@ -3,52 +3,46 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MemberAccessRewriters
-{
-	public class DamageModifiersRewriter : BaseRewriter
-	{
-		private static readonly Dictionary<string, string> IdentifierMap = new()
-		{
-			{ "magicDamage", "DamageClass.Magic" },
-			{ "magicCrit", "DamageClass.Magic" },
-			{ "meleeDamage", "DamageClass.Melee" },
-			{ "meleeCrit", "DamageClass.Melee" },
-			{ "rangedDamage", "DamageClass.Ranged" },
-			{ "rangedCrit", "DamageClass.Ranged" },
-			{ "minionDamage", "DamageClass.Summon" },
-			{ "thrownDamage", "DamageClass.Throwing" },
-			{ "thrownCrit", "DamageClass.Throwing" },
-		};
-		
-		public DamageModifiersRewriter(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
-			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
-			: base(model, usingList, nodesToRewrite, tokensToRewrite)
-		{ }
+namespace tModPorter.Rewriters.MemberAccessRewriters;
 
-		public sealed override RewriterType RewriterType => RewriterType.MemberAccess;
+public class DamageModifiersRewriter : BaseRewriter {
+	private static readonly Dictionary<string, string> IdentifierMap = new() {
+		{"magicDamage", "DamageClass.Magic"},
+		{"magicCrit", "DamageClass.Magic"},
+		{"meleeDamage", "DamageClass.Melee"},
+		{"meleeCrit", "DamageClass.Melee"},
+		{"rangedDamage", "DamageClass.Ranged"},
+		{"rangedCrit", "DamageClass.Ranged"},
+		{"minionDamage", "DamageClass.Summon"},
+		{"thrownDamage", "DamageClass.Throwing"},
+		{"thrownCrit", "DamageClass.Throwing"},
+	};
 
-		public sealed override void VisitNode(SyntaxNode node)
-		{
-			if (node is not MemberAccessExpressionSyntax nodeSyntax)
-				return;
+	public DamageModifiersRewriter(SemanticModel model, List<string> usingList,
+		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
 
-			if (IdentifierMap.ContainsKey(nodeSyntax.Name.ToString()) && !HasSymbol(nodeSyntax, out _))
-				AddNodeToRewrite(nodeSyntax.Name);
-		}
+	public sealed override RewriterType RewriterType => RewriterType.MemberAccess;
 
-		public override SyntaxNode RewriteNode(SyntaxNode node)
-		{
-			if (node is not IdentifierNameSyntax nodeSyntax) return node;
+	public sealed override void VisitNode(SyntaxNode node) {
+		if (node is not MemberAccessExpressionSyntax nodeSyntax)
+			return;
 
-			string newModifier = IdentifierMap[node.ToString()];
+		if (IdentifierMap.ContainsKey(nodeSyntax.Name.ToString()) && !HasSymbol(nodeSyntax, out _))
+			AddNodeToRewrite(nodeSyntax.Name);
+	}
 
-			SyntaxNode newNode =
-				IdentifierName(node.ToString().Contains("Damage") ? $"GetDamage({newModifier})" : $"GetCritChance({newModifier})");
+	public override SyntaxNode RewriteNode(SyntaxNode node) {
+		if (node is not IdentifierNameSyntax nodeSyntax) return node;
 
-			newNode = newNode.WithTriviaFrom(nodeSyntax);
+		string newModifier = IdentifierMap[node.ToString()];
 
-			return newNode;
-		}
+		SyntaxNode newNode =
+			IdentifierName(node.ToString().Contains("Damage") ? $"GetDamage({newModifier})" : $"GetCritChance({newModifier})");
+
+		newNode = newNode.WithTriviaFrom(nodeSyntax);
+
+		return newNode;
 	}
 }

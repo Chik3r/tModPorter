@@ -4,38 +4,33 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace tModPorter.Rewriters.MethodDeclarationRewriters
-{
-	public class PreReforgeRename : BaseRewriter
-	{
-		public PreReforgeRename(SemanticModel model, List<string> usingList,
-			HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
-			HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
-			: base(model, usingList, nodesToRewrite, tokensToRewrite)
-		{ }
+namespace tModPorter.Rewriters.MethodDeclarationRewriters;
 
-		public override RewriterType RewriterType => RewriterType.Method;
+public class PreReforgeRename : BaseRewriter {
+	public PreReforgeRename(SemanticModel model, List<string> usingList,
+		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
+		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
+		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
 
-		public override void VisitNode(SyntaxNode node)
-		{
-			if (node is not MethodDeclarationSyntax declaration) return;
+	public override RewriterType RewriterType => RewriterType.Method;
 
-			if (declaration.Identifier.ToString() != "NewPreReforge") return;
+	public override void VisitNode(SyntaxNode node) {
+		if (node is not MethodDeclarationSyntax declaration) return;
 
-			// Get class declaration and match base class to GlobalItem
-			if (!TryGetAncestorNode(node, out ClassDeclarationSyntax classDeclaration) || classDeclaration.BaseList == null ||
-			    classDeclaration.BaseList.Types.Count == 0 ||
-			    classDeclaration.BaseList.Types.All(x => x.Type.ToString() != "GlobalItem")) return;
+		if (declaration.Identifier.ToString() != "NewPreReforge") return;
 
-			AddTokenToRewrite(declaration.Identifier);
-		}
+		// Get class declaration and match base class to GlobalItem
+		if (!TryGetAncestorNode(node, out ClassDeclarationSyntax classDeclaration) || classDeclaration.BaseList == null ||
+		    classDeclaration.BaseList.Types.Count == 0 ||
+		    classDeclaration.BaseList.Types.All(x => x.Type.ToString() != "GlobalItem")) return;
 
-		public override SyntaxToken RewriteToken(SyntaxToken token)
-		{
-			if (token.Text != "NewPreReforge")
-				return token;
+		AddTokenToRewrite(declaration.Identifier);
+	}
 
-			return Identifier("PreReforge").WithTriviaFrom(token);
-		}
+	public override SyntaxToken RewriteToken(SyntaxToken token) {
+		if (token.Text != "NewPreReforge")
+			return token;
+
+		return Identifier("PreReforge").WithTriviaFrom(token);
 	}
 }
