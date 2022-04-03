@@ -31,7 +31,7 @@ public class ActiveTileRewriter : BaseRewriter {
 		MemberAccessExpressionSyntax memberAccessSyntax = (MemberAccessExpressionSyntax) invocationSyntax.Expression;
 
 		IdentifierNameSyntax newName = IdentifierName(memberAccessSyntax.Name.ToString() == "nactive" ? "HasUnactuatedTile" : "HasTile");
-		newName = newName.WithTriviaFrom(memberAccessSyntax.Name);
+		newName = newName.WithTriviaFrom(memberAccessSyntax.Name).WithTrailingTrivia(invocationSyntax.ArgumentList.GetTrailingTrivia());
 
 		return memberAccessSyntax.WithName(newName);
 	}
