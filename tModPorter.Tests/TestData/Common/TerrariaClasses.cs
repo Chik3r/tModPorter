@@ -3,6 +3,13 @@
 public class Tile
 {
     public ushort TileType;
+    public int WallType;
+    public bool HasTile => true;
+    public bool IsActiveUnactuated => true;
+    public int TileFrameX;
+    public int TileFrameY;
+    public int WallFrameX;
+    public int WallFrameY;
 }
 
 public class Projectile
