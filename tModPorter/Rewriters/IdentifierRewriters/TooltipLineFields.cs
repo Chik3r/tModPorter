@@ -7,10 +7,10 @@ namespace tModPorter.Rewriters.IdentifierRewriters;
 
 public class TooltipLineFields : BaseRewriter {
 	private static readonly Dictionary<string, string> IdentifierMap = new() {
-		{ "text", "Text" },
-		{ "isModifier", "IsModifier" },
-		{ "isModifierBad", "IsModifierBad" },
-		{ "overrideColor", "OverrideColor" },
+		{"text", "Text"},
+		{"isModifier", "IsModifier"},
+		{"isModifierBad", "IsModifierBad"},
+		{"overrideColor", "OverrideColor"},
 	};
 
 	public TooltipLineFields(SemanticModel model, List<string> usingList,
