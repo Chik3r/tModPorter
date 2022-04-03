@@ -11,6 +11,8 @@ public class TileFieldsRewriter : BaseRewriter {
 		{"frameY", "TileFrameY"},
 		{"type", "TileType"},
 		{"wall", "WallType"},
+		{"wallFrameX", "WallFrameX"},
+		{"wallFrameY", "WallFrameY"},
 	};
 
 	public TileFieldsRewriter(SemanticModel model, List<string> usingList,
