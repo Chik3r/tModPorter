@@ -21,9 +21,8 @@ public class TooltipLineFieldsRewriter : BaseRewriter {
 	public override RewriterType RewriterType => RewriterType.Identifier;
 
 	public override void VisitNode(SyntaxNode node) {
-		if (node.Parent is not MemberAccessExpressionSyntax memberAccessSyntax) {
+		if (node.Parent is not MemberAccessExpressionSyntax memberAccessSyntax)
 			return;
-		}
 
 		if (!IdentifierMap.ContainsKey(memberAccessSyntax.Name.ToString()))
 			return;

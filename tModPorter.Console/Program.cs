@@ -16,11 +16,15 @@ internal class Program {
 
 		if (result.Success) {
 			WriteLine("Successfully ported the project");
+
+			ReadKey();
 			return;
 		}
 		
 		WriteLine("Failed to port the project with the following error:");
 		WriteLine(result.ErrorCause);
+
+		ReadKey();
 	}
 	
 	private static string GetProjectPath(string[] args) {
