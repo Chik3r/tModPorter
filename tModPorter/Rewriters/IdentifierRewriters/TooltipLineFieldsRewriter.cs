@@ -5,7 +5,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.IdentifierRewriters; 
 
-public class TooltipLineFields : BaseRewriter {
+public class TooltipLineFieldsRewriter : BaseRewriter {
 	private static readonly Dictionary<string, string> IdentifierMap = new() {
 		{"text", "Text"},
 		{"isModifier", "IsModifier"},
@@ -13,7 +13,7 @@ public class TooltipLineFields : BaseRewriter {
 		{"overrideColor", "OverrideColor"},
 	};
 
-	public TooltipLineFields(SemanticModel model, List<string> usingList,
+	public TooltipLineFieldsRewriter(SemanticModel model, List<string> usingList,
 		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
 		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
