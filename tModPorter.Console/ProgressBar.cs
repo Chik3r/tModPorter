@@ -1,19 +1,17 @@
-﻿using System;
-using System.Text;
-using System.Threading;
+﻿using System.Text;
+using SysConsole = System.Console;
 
-namespace tModPorter;
+namespace tModPorter.Console;
 
-public class ProgressBar : IDisposable, IProgress<int> {
+public class ProgressBar : IDisposable, IProgress<double> {
 	private readonly TimeSpan _animationInterval;
-	private readonly int _maxElements;
 	private readonly byte _numberOfBlocks;
 	private readonly Timer _timer;
-	private int _currentElements;
+	private double _progress;
 	private bool _disposed;
+	private bool _started;
 
-	public ProgressBar(int maxElements, byte numberOfBlocks = 16, double animationInterval = 1.0 / 8) {
-		_maxElements = maxElements;
+	public ProgressBar(byte numberOfBlocks = 16, double animationInterval = 1.0 / 8) {
 		_timer = new Timer(TimerCallback);
 		_numberOfBlocks = numberOfBlocks;
 		_animationInterval = TimeSpan.FromSeconds(animationInterval);
@@ -27,14 +25,30 @@ public class ProgressBar : IDisposable, IProgress<int> {
 		GC.SuppressFinalize(this);
 	}
 
-	public void Report(int v) => Interlocked.Add(ref _currentElements, v);
+	public void Report(double v) {
+		if (!_started) {
+			Start();
+		}
 
-	public void Start() => ResetTimer();
+		_progress = v;
+	}
 
-	public static ProgressBar StartNew(int maxElements, byte numberOfBlocks = 16, double animationInterval = 1.0 / 8) {
-		ProgressBar bar = new(maxElements, numberOfBlocks, animationInterval);
+	public void Start() {
+		ResetTimer();
+		_started = true;
+	}
+
+	public static ProgressBar StartNew(byte numberOfBlocks = 16, double animationInterval = 1.0 / 8) {
+		ProgressBar bar = new(numberOfBlocks, animationInterval);
 		bar.Start();
 		return bar;
+	}
+
+	public void ForceUpdate() {
+		lock (_timer) {
+			ResetTimer();
+			UpdateProgressText(CreateProgressText());
+		}
 	}
 
 	private void TimerCallback(object state) {
@@ -50,8 +64,7 @@ public class ProgressBar : IDisposable, IProgress<int> {
 
 	private string CreateProgressText() {
 		// Calculate the number of blocks to draw with the "#" character
-		double percent = (double) _currentElements / _maxElements;
-		int numFullBlocks = (int) Math.Round(percent * _numberOfBlocks);
+		int numFullBlocks = (int) Math.Round(_progress * _numberOfBlocks);
 
 		// Append the characters to a string builder
 		StringBuilder sb = new();
@@ -59,8 +72,8 @@ public class ProgressBar : IDisposable, IProgress<int> {
 			sb.Append(i <= numFullBlocks ? "#" : "-");
 
 		// Format the string and return it
-		return $"\r[{sb}] {_currentElements}/{_maxElements,-5}";
+		return $"\r[{sb}] {_progress:P2}";
 	}
 
-	private void UpdateProgressText(string text) => Console.Write(text);
+	private void UpdateProgressText(string text) => SysConsole.Write(text);
 }

@@ -14,6 +14,8 @@ ProjectSection(SolutionItems) = preProject
 	.editorconfig = .editorconfig
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tModPorter.Console", "tModPorter.Console\tModPorter.Console.csproj", "{426AA0A2-F9A9-4158-B889-6F18E219224C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{6A653E5C-4182-4769-97EF-AB083A29B359}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A653E5C-4182-4769-97EF-AB083A29B359}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A653E5C-4182-4769-97EF-AB083A29B359}.Release|Any CPU.Build.0 = Release|Any CPU
+		{426AA0A2-F9A9-4158-B889-6F18E219224C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{426AA0A2-F9A9-4158-B889-6F18E219224C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{426AA0A2-F9A9-4158-B889-6F18E219224C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{426AA0A2-F9A9-4158-B889-6F18E219224C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
