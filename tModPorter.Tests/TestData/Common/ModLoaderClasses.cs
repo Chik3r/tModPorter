@@ -35,3 +35,11 @@ public abstract class ModMount
 {
     public virtual void SetStaticDefaults() { }
 }
+
+public class TooltipLine {
+	public string Mod;
+	public string Name;
+	public string Text;
+	public bool IsModifier;
+	public int OverrideColor;
+}
