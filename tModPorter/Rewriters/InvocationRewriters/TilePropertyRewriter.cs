@@ -5,8 +5,14 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace tModPorter.Rewriters.InvocationRewriters;
 
-public class ActiveTileRewriter : BaseRewriter {
-	public ActiveTileRewriter(SemanticModel model, List<string> usingList,
+public class TilePropertyRewriter : BaseRewriter {
+	private static readonly Dictionary<string, string> IdentifierMap = new() {
+		{"active", "HasTile"},
+		{"nactive", "HasUnactuatedTile"},
+		{"halfBrick", "IsHalfBlock"},
+	};
+
+	public TilePropertyRewriter(SemanticModel model, List<string> usingList,
 		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
 		: base(model, usingList, nodesToRewrite, tokensToRewrite) { }
@@ -18,7 +24,7 @@ public class ActiveTileRewriter : BaseRewriter {
 		
 		if (invocationSyntax.Expression is not MemberAccessExpressionSyntax memberAccessSyntax) return;
 
-		if (memberAccessSyntax.Name.ToString() != "active" && memberAccessSyntax.Name.ToString() != "nactive") return;
+		if (!IdentifierMap.ContainsKey(memberAccessSyntax.Name.ToString())) return;
 		
 		string typeName = GetTypeName(memberAccessSyntax.Expression);
 		if (typeName != "Tilemap" && typeName != "Tile") return;
@@ -30,7 +36,7 @@ public class ActiveTileRewriter : BaseRewriter {
 		InvocationExpressionSyntax invocationSyntax = (InvocationExpressionSyntax) node;
 		MemberAccessExpressionSyntax memberAccessSyntax = (MemberAccessExpressionSyntax) invocationSyntax.Expression;
 
-		IdentifierNameSyntax newName = IdentifierName(memberAccessSyntax.Name.ToString() == "nactive" ? "HasUnactuatedTile" : "HasTile");
+		IdentifierNameSyntax newName = IdentifierName(IdentifierMap[memberAccessSyntax.Name.ToString()]);
 		newName = newName.WithTriviaFrom(memberAccessSyntax.Name).WithTrailingTrivia(invocationSyntax.ArgumentList.GetTrailingTrivia());
 
 		return memberAccessSyntax.WithName(newName);
