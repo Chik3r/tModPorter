@@ -17,6 +17,7 @@ public class NetReceiveRename : BaseRewriter {
 	public override void VisitNode(SyntaxNode node) {
 		if (node is not MethodDeclarationSyntax declaration) return;
 
+		// ReSharper disable once StringLiteralTypo
 		if (declaration.Identifier.ToString() != "NetRecieve") return;
 
 		// Get class declaration and match base class to ModItem
@@ -28,6 +29,7 @@ public class NetReceiveRename : BaseRewriter {
 	}
 
 	public override SyntaxToken RewriteToken(SyntaxToken token) {
+		// ReSharper disable once StringLiteralTypo
 		if (token.Text != "NetRecieve")
 			return token;
 

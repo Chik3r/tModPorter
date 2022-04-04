@@ -24,11 +24,15 @@ public abstract class GlobalItem
 public abstract class ModTile
 {
     public virtual void RightClick() { }
+    
+    public virtual bool IsTileDangerous(int i) { return false; }
 }
 
 public abstract class GlobalTile
 {
     public virtual void SetStaticDefaults() { }
+    
+    public virtual bool? IsTileDangerous(int i) { return false; }
 }
 
 public abstract class ModMount
