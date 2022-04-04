@@ -59,12 +59,14 @@ public class AddRecipesRewriter : BaseRewriter {
 						resultAmount = int.Parse(arguments[1]);
 					break;
 				case "AddRecipe":
-					string parsedExpression = $"CreateRecipe({resultAmount})" + expression;
+					string parsedExpression;
 
 					if (string.IsNullOrEmpty(result))
-						parsedExpression += ".Register()";
+						parsedExpression = $"CreateRecipe({resultAmount})";
 					else
-						parsedExpression += $".ReplaceResult({result})";
+						parsedExpression = $"Mod.CreateRecipe({result}, {resultAmount})";
+
+					parsedExpression += expression + ".Register()";
 
 					newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression))
 						.WithLeadingTrivia(leading).WithTrailingTrivia(ElasticCarriageReturnLineFeed));
