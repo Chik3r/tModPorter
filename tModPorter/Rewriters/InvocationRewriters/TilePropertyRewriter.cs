@@ -10,6 +10,7 @@ public class TilePropertyRewriter : BaseRewriter {
 		{"active", "HasTile"},
 		{"nactive", "HasUnactuatedTile"},
 		{"halfBrick", "IsHalfBlock"},
+		{"inactive", "IsActuated"},
 	};
 
 	public TilePropertyRewriter(SemanticModel model, List<string> usingList,
