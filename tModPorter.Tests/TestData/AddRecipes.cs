@@ -12,7 +12,12 @@ public class AddRecipes : ModItem {
 		recipe.AddRecipe();
 
 		Method();
+		A.B();
 	}
 	
 	public void Method() { }
+}
+
+class A {
+	public void B() { }
 }
