@@ -30,12 +30,7 @@ public class AutomaticTest {
 		SemanticModel model = _compilation.GetSemanticModel(tree);
 		SyntaxNode rootNode = tree.GetRoot();
 
-		MainRewriter rewriter = new(model);
-		rewriter.Visit(rootNode);
-		CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
-
-		Assert.NotNull(result);
-		result = rewriter.AddUsingDirectives(result);
+		CompilationUnitSyntax result = RewriteCodeOnce(model, rootNode);
 
 		string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
 
@@ -44,16 +39,55 @@ public class AutomaticTest {
 
 		Assert.AreEqual(fixedContent, result.ToFullString());
 	}
+	
+	[TestCaseSource(nameof(GetTestCases))]
+	public async Task RewriteCodeTwice(SyntaxTree tree) {
+		Document newDoc = _project!.Documents.FirstOrDefault(x => x.FilePath == tree.FilePath)!;
+		tree = await newDoc.GetSyntaxTreeAsync() ?? throw new NullReferenceException("Node has no syntax tree");
+		SemanticModel model = _compilation!.GetSemanticModel(tree);
+		SyntaxNode rootNode = await tree.GetRootAsync();
 
-	public static async Task LoadProject() {
-		if (_workspace is not null && _project is not null && _compilation is not null) return;
+		CompilationUnitSyntax result = RewriteCodeOnce(model, rootNode);
 		
-		MSBuildLocator.RegisterDefaults();
+		// Write the rewritten file to disk, so that we can then load it again with the .csproj
+		await File.WriteAllTextAsync(tree.FilePath, result.ToString());
+		await LoadProject(true);
+
+		newDoc = _project.Documents.FirstOrDefault(x => x.FilePath == tree.FilePath)!;
+		Assert.NotNull(newDoc, "Couldn't load the rewritten file from disk.");
+
+		tree = await newDoc.GetSyntaxTreeAsync() ?? throw new NullReferenceException("Node has no syntax tree");
+		
+		model = _compilation.GetSemanticModel(tree);
+		rootNode = await tree!.GetRootAsync();
+
+		result = RewriteCodeOnce(model, rootNode);
+
+		string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
+
+		Assert.True(File.Exists(fixedFilePath), $"File '{fixedFilePath}' doesn't exist.");
+		string fixedContent = File.ReadAllText(fixedFilePath);
+
+		Assert.AreEqual(fixedContent, result.ToFullString());
+	}
+	
+	private CompilationUnitSyntax RewriteCodeOnce(SemanticModel model, SyntaxNode rootNode) {
+		MainRewriter rewriter = new(model);
+		rewriter.Visit(rootNode);
+		CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
+
+		Assert.NotNull(result);
+		return rewriter.AddUsingDirectives(result);
+	}
+
+	public static async Task LoadProject(bool force = false) {
+		if (!force && _workspace is not null && _project is not null && _compilation is not null) return;
+		
+		if (!MSBuildLocator.IsRegistered)
+			MSBuildLocator.RegisterDefaults();
 
 		using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
 		_workspace = workspace;
-
-		var a = Directory.EnumerateFiles("TestData/", "*");
 		
 		if (!File.Exists("TestData/TestData.csproj")) {
 			throw new FileNotFoundException("TestData.csproj not found.");
@@ -62,6 +96,10 @@ public class AutomaticTest {
 		_project = await workspace.OpenProjectAsync("TestData/TestData.csproj");
 		
 		_compilation = await _project.GetCompilationAsync();
+
+		if (_workspace is null) throw new NullReferenceException(nameof(_workspace));
+		if (_project is null) throw new NullReferenceException(nameof(_project));
+		if (_compilation is null) throw new NullReferenceException(nameof(_compilation));
 	}
 
 	public static IEnumerable<SyntaxTree> GetSyntaxTrees() {
