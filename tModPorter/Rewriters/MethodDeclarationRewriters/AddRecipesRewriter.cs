@@ -7,6 +7,14 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace tModPorter.Rewriters.MethodDeclarationRewriters;
 
 public class AddRecipesRewriter : BaseRewriter {
+	private static readonly List<string> ValidModRecipeMethods = new() {
+		"AddIngredient",
+		"AddRecipe",
+		"AddRecipeGroup",
+		"AddTile",
+		"SetResult",
+	};
+	
 	public AddRecipesRewriter(SemanticModel model, List<string> usingList,
 		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite)
@@ -26,7 +34,7 @@ public class AddRecipesRewriter : BaseRewriter {
 
 	public override SyntaxNode RewriteNode(SyntaxNode node) {
 		MethodDeclarationSyntax nodeMethod = (MethodDeclarationSyntax) node;
-		SyntaxTriviaList leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
+		// SyntaxTriviaList leading = nodeMethod.Body.Statements.First().GetLeadingTrivia();
 		SyntaxList<StatementSyntax> newStatements = new();
 
 		string expression = "";
@@ -34,13 +42,57 @@ public class AddRecipesRewriter : BaseRewriter {
 		string result = null;
 
 		foreach (StatementSyntax statementSyntax in nodeMethod.Body.Statements) {
+			if (HasSymbol(statementSyntax, out _)) {
+				newStatements = newStatements.Add(statementSyntax);
+				continue;
+			}
+			
+			if (statementSyntax is LocalDeclarationStatementSyntax) {
+				if (!statementSyntax.ToString().Contains("ModRecipe"))
+					newStatements = newStatements.Add(statementSyntax);
+				continue;
+			}
+
 			if (statementSyntax is not ExpressionStatementSyntax {
 					Expression: InvocationExpressionSyntax invocationExpressionSyntax,
-				})
+				}) {
+				newStatements = newStatements.Add(statementSyntax);
 				continue;
+			}
 
-			if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessSyntax)
+			if (invocationExpressionSyntax.Expression is not MemberAccessExpressionSyntax memberAccessSyntax) {
+				newStatements = newStatements.Add(statementSyntax);
 				continue;
+			}
+			
+			if (!ValidModRecipeMethods.Contains(memberAccessSyntax.Name.ToString().Trim())) {
+				newStatements = newStatements.Add(statementSyntax);
+				continue;
+			}
+
+			string leadingTrivia = memberAccessSyntax.GetLeadingTrivia().ToString();
+			int numIndentations;
+			char indentChar;
+			if (leadingTrivia.Contains('\t')) {
+				indentChar = '\t';
+				numIndentations = leadingTrivia.Count(c => c == '\t');
+			}
+			else {
+				// 4 spaces mean 1 indent
+				indentChar = ' ';
+				numIndentations = leadingTrivia.Count(c => c == ' ') / 4;
+			}
+			
+			string GenerateIndent() {
+				string indent = "\r\n";
+				for (int i = 0; i < numIndentations + 1; i++) {
+					if (indentChar == '\t')
+						indent += "\t";
+					else
+						indent += "    ";
+				}
+				return indent;
+			}
 
 			// Parse the existing recipe
 			switch (memberAccessSyntax.Name.ToString()) {
@@ -48,7 +100,7 @@ public class AddRecipesRewriter : BaseRewriter {
 				case "AddTile":
 				case "AddRecipeGroup":
 					string[] splitExpression = invocationExpressionSyntax.ToString().Split('.', 2);
-					expression += "." + splitExpression[1];
+					expression += GenerateIndent() + "." + splitExpression[1];
 					break;
 				case "SetResult":
 					string[] arguments = invocationExpressionSyntax.ArgumentList.Arguments.Select(a => a.ToString()).ToArray();
@@ -66,10 +118,16 @@ public class AddRecipesRewriter : BaseRewriter {
 					else
 						parsedExpression = $"Mod.CreateRecipe({result}, {resultAmount})";
 
-					parsedExpression += expression + ".Register()";
+					parsedExpression += expression + GenerateIndent() + ".Register()";
 
-					newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression))
-						.WithLeadingTrivia(leading).WithTrailingTrivia(ElasticCarriageReturnLineFeed));
+					// var a = ExpressionStatement(ParseExpression(parsedExpression));
+					// Dictionary<SyntaxToken, SyntaxToken> tokenDict = new();
+					// foreach (SyntaxToken dotToken in a.Expression.DescendantTokens().Where(x => x.IsKind(SyntaxKind.DotToken))) {
+					// 	tokenDict.Add(dotToken, dotToken.WithLeadingTrivia(TriviaList(ElasticLineFeed, ElasticTab, ElasticTab, ElasticTab)));
+					// }
+					// a = a.ReplaceTokens(tokenDict.Keys.AsEnumerable(), (original, _) => tokenDict[original]);
+
+					newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression)).WithTriviaFrom(statementSyntax));
 
 					expression = "";
 					resultAmount = 1;
