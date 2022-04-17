@@ -1,25 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.MSBuild;
 using tModPorter.Rewriters;
 using NUnit.Framework;
 
 namespace tModPorter.Tests;
 
 public class AutomaticTest {
-	private Compilation _compilation;
-	private static List<SyntaxTree>? Trees;
+	private static Compilation? _compilation;
+	private static Project? _project;
+	private static Workspace? _workspace;
 
 	[OneTimeSetUp]
-	public void Setup() {
-		GetSyntaxTrees();
+	public async Task Setup() {
+		await LoadProject();
 
 		MetadataReference[] references = {MetadataReference.CreateFromFile(typeof(object).Assembly.Location)};
-
-		_compilation = CSharpCompilation.Create("TestAssembly", Trees, references);
 	}
 
 	[TestCaseSource(nameof(GetTestCases))]
@@ -42,28 +45,46 @@ public class AutomaticTest {
 		Assert.AreEqual(fixedContent, result.ToFullString());
 	}
 
-	public static List<SyntaxTree> GetSyntaxTrees() {
-		if (Trees is not null) return Trees;
+	public static async Task LoadProject() {
+		if (_workspace is not null && _project is not null && _compilation is not null) return;
+		
+		MSBuildLocator.RegisterDefaults();
 
-		List<string> testFiles = new(Directory.GetFiles("TestData/", "*", SearchOption.AllDirectories).Where(x => !x.Contains(".Fix.cs")));
-		Assert.IsNotEmpty(testFiles);
+		using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+		_workspace = workspace;
 
-		Trees = new List<SyntaxTree>(testFiles.Count);
-		foreach (string filePath in testFiles) {
-			string text = File.ReadAllText(filePath);
-			Trees.Add(CSharpSyntaxTree.ParseText(text, path: filePath));
+		var a = Directory.EnumerateFiles("TestData/", "*");
+		
+		if (!File.Exists("TestData/TestData.csproj")) {
+			throw new FileNotFoundException("TestData.csproj not found.");
 		}
+		
+		_project = await workspace.OpenProjectAsync("TestData/TestData.csproj");
+		
+		_compilation = await _project.GetCompilationAsync();
+	}
 
-		return Trees;
+	public static IEnumerable<SyntaxTree> GetSyntaxTrees() {
+		return GetSyntaxTreesAsync().ToEnumerable();
+	}
+
+	public static async IAsyncEnumerable<SyntaxTree> GetSyntaxTreesAsync() {
+		await LoadProject();
+		if (_project is null) {
+			throw new NullReferenceException(nameof(_project));
+		}
+		
+		foreach (Document document in _project.Documents) {
+			SyntaxTree tree = await document.GetSyntaxTreeAsync() ?? throw new Exception("No syntax tree found for: " + document.FilePath);
+			if (tree.FilePath.Replace('\\', '/').Contains("TestData/Common")) continue;
+			yield return tree;
+		}
 	}
 
 	public static IEnumerable<TestCaseData> GetTestCases() {
-		IEnumerable<SyntaxTree> syntaxTrees =
-			GetSyntaxTrees().Where(x => !Path.GetDirectoryName(x.FilePath)!.Replace('\\', '/').Contains("TestData/Common"));
-
-		TestCaseData data;
-		foreach (SyntaxTree tree in syntaxTrees) {
-			data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
+		var a = GetSyntaxTrees().ToList();
+		foreach (SyntaxTree tree in GetSyntaxTrees()) {
+			TestCaseData data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
 			yield return data;
 		}
 	}
