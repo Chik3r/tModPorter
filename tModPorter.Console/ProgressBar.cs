@@ -44,11 +44,9 @@ public class ProgressBar : IDisposable, IProgress<double> {
 		return bar;
 	}
 
-	public void ForceUpdate() {
-		lock (_timer) {
-			ResetTimer();
-			UpdateProgressText(CreateProgressText());
-		}
+	public void Finish() {
+		UpdateProgressText(CreateProgressText());
+		Dispose();
 	}
 
 	private void TimerCallback(object state) {

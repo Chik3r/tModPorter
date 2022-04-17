@@ -11,7 +11,7 @@ internal class Program {
 		tModPorter porter = new();
 		Result result = await porter.ProcessProject(projectPath, 4, bar);
 
-		bar.ForceUpdate();
+		bar.Finish();
 		WriteLine();
 
 		if (result.Success) {
