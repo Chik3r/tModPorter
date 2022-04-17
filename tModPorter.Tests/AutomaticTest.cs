@@ -25,6 +25,15 @@ public class AutomaticTest {
 		MetadataReference[] references = {MetadataReference.CreateFromFile(typeof(object).Assembly.Location)};
 	}
 
+	[OneTimeTearDown]
+	public void TearDown() {
+		_compilation = null;
+		_project = null;
+		_workspace = null;
+		
+		Directory.Delete("TestDataRewritten", true);
+	}
+
 	[TestCaseSource(nameof(GetTestCases))]
 	public void RewriteCode(SyntaxTree tree) {
 		SemanticModel model = _compilation.GetSemanticModel(tree);
@@ -71,7 +80,7 @@ public class AutomaticTest {
 		Assert.AreEqual(fixedContent, result.ToFullString());
 	}
 	
-	private CompilationUnitSyntax RewriteCodeOnce(SemanticModel model, SyntaxNode rootNode) {
+	private static CompilationUnitSyntax RewriteCodeOnce(SemanticModel model, SyntaxNode rootNode) {
 		MainRewriter rewriter = new(model);
 		rewriter.Visit(rootNode);
 		CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
@@ -80,7 +89,7 @@ public class AutomaticTest {
 		return rewriter.AddUsingDirectives(result);
 	}
 
-	public static async Task LoadProject(bool force = false) {
+	private static async Task LoadProject(bool force = false) {
 		if (!force && _workspace is not null && _project is not null && _compilation is not null) return;
 		
 		if (!MSBuildLocator.IsRegistered)
@@ -88,12 +97,16 @@ public class AutomaticTest {
 
 		using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
 		_workspace = workspace;
+
+		if (!Directory.Exists("TestDataRewritten")) {
+			CopyFilesRecursively("TestData/", "TestDataRewritten/");
+		}
 		
-		if (!File.Exists("TestData/TestData.csproj")) {
+		if (!File.Exists("TestDataRewritten/TestData.csproj")) {
 			throw new FileNotFoundException("TestData.csproj not found.");
 		}
 		
-		_project = await workspace.OpenProjectAsync("TestData/TestData.csproj");
+		_project = await workspace.OpenProjectAsync("TestDataRewritten/TestData.csproj");
 		
 		_compilation = await _project.GetCompilationAsync();
 
@@ -102,11 +115,11 @@ public class AutomaticTest {
 		if (_compilation is null) throw new NullReferenceException(nameof(_compilation));
 	}
 
-	public static IEnumerable<SyntaxTree> GetSyntaxTrees() {
+	private static IEnumerable<SyntaxTree> GetSyntaxTrees() {
 		return GetSyntaxTreesAsync().ToEnumerable();
 	}
 
-	public static async IAsyncEnumerable<SyntaxTree> GetSyntaxTreesAsync() {
+	private static async IAsyncEnumerable<SyntaxTree> GetSyntaxTreesAsync() {
 		await LoadProject();
 		if (_project is null) {
 			throw new NullReferenceException(nameof(_project));
@@ -114,16 +127,30 @@ public class AutomaticTest {
 		
 		foreach (Document document in _project.Documents) {
 			SyntaxTree tree = await document.GetSyntaxTreeAsync() ?? throw new Exception("No syntax tree found for: " + document.FilePath);
-			if (tree.FilePath.Replace('\\', '/').Contains("TestData/Common")) continue;
+			if (tree.FilePath.Replace('\\', '/').Contains("TestDataRewritten/Common")) continue;
 			yield return tree;
 		}
 	}
 
 	public static IEnumerable<TestCaseData> GetTestCases() {
-		var a = GetSyntaxTrees().ToList();
 		foreach (SyntaxTree tree in GetSyntaxTrees()) {
 			TestCaseData data = new TestCaseData(tree).SetName(Path.GetFileName(tree.FilePath));
 			yield return data;
+		}
+	}
+	
+	private static void CopyFilesRecursively(string sourcePath, string targetPath)
+	{
+		//Now Create all of the directories
+		foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+		{
+			Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+		}
+
+		//Copy all the files & Replaces any files with the same name
+		foreach (string newPath in Directory.GetFiles(sourcePath, "*.*",SearchOption.AllDirectories))
+		{
+			File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
 		}
 	}
 }
