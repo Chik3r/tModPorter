@@ -120,13 +120,6 @@ public class AddRecipesRewriter : BaseRewriter {
 
 					parsedExpression += expression + GenerateIndent() + ".Register()";
 
-					// var a = ExpressionStatement(ParseExpression(parsedExpression));
-					// Dictionary<SyntaxToken, SyntaxToken> tokenDict = new();
-					// foreach (SyntaxToken dotToken in a.Expression.DescendantTokens().Where(x => x.IsKind(SyntaxKind.DotToken))) {
-					// 	tokenDict.Add(dotToken, dotToken.WithLeadingTrivia(TriviaList(ElasticLineFeed, ElasticTab, ElasticTab, ElasticTab)));
-					// }
-					// a = a.ReplaceTokens(tokenDict.Keys.AsEnumerable(), (original, _) => tokenDict[original]);
-
 					newStatements = newStatements.Add(ExpressionStatement(ParseExpression(parsedExpression)).WithTriviaFrom(statementSyntax));
 
 					expression = "";
