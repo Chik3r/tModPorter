@@ -46,16 +46,14 @@ public class AddRecipesRewriter : BaseRewriter {
 				newStatements = newStatements.Add(statementSyntax);
 				continue;
 			}
-			
-			if (statementSyntax is LocalDeclarationStatementSyntax) {
+
+			if (statementSyntax is LocalDeclarationStatementSyntax or ExpressionStatementSyntax {Expression: AssignmentExpressionSyntax}) {
 				if (!statementSyntax.ToString().Contains("ModRecipe"))
 					newStatements = newStatements.Add(statementSyntax);
 				continue;
 			}
 
-			if (statementSyntax is not ExpressionStatementSyntax {
-					Expression: InvocationExpressionSyntax invocationExpressionSyntax,
-				}) {
+			if (statementSyntax is not ExpressionStatementSyntax {Expression: InvocationExpressionSyntax invocationExpressionSyntax}) {
 				newStatements = newStatements.Add(statementSyntax);
 				continue;
 			}
@@ -64,7 +62,7 @@ public class AddRecipesRewriter : BaseRewriter {
 				newStatements = newStatements.Add(statementSyntax);
 				continue;
 			}
-			
+
 			if (!ValidModRecipeMethods.Contains(memberAccessSyntax.Name.ToString().Trim())) {
 				newStatements = newStatements.Add(statementSyntax);
 				continue;
@@ -82,7 +80,7 @@ public class AddRecipesRewriter : BaseRewriter {
 				indentChar = ' ';
 				numIndentations = leadingTrivia.Count(c => c == ' ') / 4;
 			}
-			
+
 			string GenerateIndent() {
 				string indent = "\r\n";
 				for (int i = 0; i < numIndentations + 1; i++) {
