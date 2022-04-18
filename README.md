@@ -10,13 +10,13 @@ How to use:
 2) Install tModLoader 1.4 (you can find more info about this on the [tModLoader discord](https://tmodloader.net/discord))
 3) Open tModLoader 1.4, go to the Mod Sources menu and click the `Open Sources` button to open the Mod Sources folder
 4) Copy your mod's source to the Mod Sources folder (i.e. copy `ModLoader/Mod Sources/MyMod`
-   to `ModLoader/Beta/Mod Sources/MyMod`)
+   to `tModLoader/Mod Sources/MyMod`)
 5) Open tModLoader again and go to the Mod Sources menu. You will see your mod with a little exclamation mark
    (saying `Upgrade .csproj file`). Click that button so that your mod can work with the 1.4 classes (and tModPorter can
    correctly port your mod).
 6) Drag and drop your mod's .csproj file (usually named `YourModName.csproj`) to the tModPorter .exe file (that you
    either got from building tModPorter yourself, or from a release if there's one available)
 
-If you manually built tModPorter, the exe should be in `tModPorter/tModPorter/bin/Debug/net6.0/tModPorter.exe`.
+If you manually built tModPorter, the exe should be in `tModPorter/tModPorter.Console/bin/Debug/net6.0/tModPorter.Console.exe`.
 
-You need to install the .NET 6 SDK to build tModPorter.
+You need to install the .NET 6 SDK to build and run tModPorter.
