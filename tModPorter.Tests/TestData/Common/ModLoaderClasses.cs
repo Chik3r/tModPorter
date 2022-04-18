@@ -47,3 +47,7 @@ public class TooltipLine {
 	public bool IsModifier;
 	public int OverrideColor;
 }
+
+public enum DamageClass {
+	Magic, Melee, Ranged, Summon, Generic, SummonMeleeSpeed,
+}
