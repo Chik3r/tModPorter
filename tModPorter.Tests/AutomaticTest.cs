@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using tModPorter.Rewriters;
@@ -13,6 +12,7 @@ using NUnit.Framework;
 
 namespace tModPorter.Tests;
 
+// TODO: Make test using tModPorter class
 public class AutomaticTest {
 	private static Compilation? _compilation;
 	private static Project? _project;
@@ -25,10 +25,11 @@ public class AutomaticTest {
 
 	[TestCaseSource(nameof(GetTestCases))]
 	public void RewriteCode(SyntaxTree tree) {
-		SemanticModel model = _compilation.GetSemanticModel(tree);
+		Document newDoc = _project!.Documents.First(x => x.FilePath == tree.FilePath);
+		SemanticModel model = _compilation!.GetSemanticModel(tree);
 		SyntaxNode rootNode = tree.GetRoot();
 
-		CompilationUnitSyntax result = RewriteCodeOnce(model, rootNode);
+		CompilationUnitSyntax result = RewriteCodeOnce(newDoc, model, rootNode);
 
 		string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
 
@@ -40,12 +41,12 @@ public class AutomaticTest {
 	
 	[TestCaseSource(nameof(GetTestCases))]
 	public async Task RewriteCodeTwice(SyntaxTree tree) {
-		Document newDoc = _project!.Documents.FirstOrDefault(x => x.FilePath == tree.FilePath)!;
+		Document newDoc = _project!.Documents.First(x => x.FilePath == tree.FilePath);
 		tree = await newDoc.GetSyntaxTreeAsync() ?? throw new NullReferenceException("Node has no syntax tree");
 		SemanticModel model = _compilation!.GetSemanticModel(tree);
 		SyntaxNode rootNode = await tree.GetRootAsync();
 
-		CompilationUnitSyntax result = RewriteCodeOnce(model, rootNode);
+		CompilationUnitSyntax result = RewriteCodeOnce(newDoc, model, rootNode);
 		
 		// Write the rewritten file to disk, so that we can then load it again with the .csproj
 		newDoc = newDoc.WithSyntaxRoot(result);
@@ -55,18 +56,18 @@ public class AutomaticTest {
 		model = newCompilation!.GetSemanticModel(tree);
 		rootNode = await tree.GetRootAsync();
 
-		result = RewriteCodeOnce(model, rootNode);
+		result = RewriteCodeOnce(newDoc, model, rootNode);
 
 		string fixedFilePath = Path.ChangeExtension(tree.FilePath, ".Fix.cs");
 
 		Assert.True(File.Exists(fixedFilePath), $"File '{fixedFilePath}' doesn't exist.");
-		string fixedContent = File.ReadAllText(fixedFilePath);
+		string fixedContent = await File.ReadAllTextAsync(fixedFilePath);
 
 		Assert.AreEqual(fixedContent, result.ToFullString());
 	}
 	
-	private static CompilationUnitSyntax RewriteCodeOnce(SemanticModel model, SyntaxNode rootNode) {
-		MainRewriter rewriter = new(model);
+	private static CompilationUnitSyntax RewriteCodeOnce(Document document, SemanticModel model, SyntaxNode rootNode) {
+		MainRewriter rewriter = new(document, model);
 		rewriter.Visit(rootNode);
 		CompilationUnitSyntax? result = rewriter.RewriteNodes(rootNode) as CompilationUnitSyntax;
 

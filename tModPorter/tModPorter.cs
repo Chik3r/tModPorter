@@ -71,7 +71,7 @@ public class tModPorter {
 
 		SyntaxNode rootNode = await root.GetRootAsync();
 
-		MainRewriter rewriter = new(await document.GetSemanticModelAsync());
+		MainRewriter rewriter = new(document, await document.GetSemanticModelAsync());
 		// Visit all the nodes to know what to change
 		rewriter.Visit(rootNode);
 		// Modify all nodes

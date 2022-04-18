@@ -7,15 +7,16 @@ using Microsoft.CodeAnalysis;
 namespace tModPorter.Rewriters;
 
 public abstract class BaseRewriter {
-	protected readonly SemanticModel _model;
+	protected SemanticModel Model;
 	private readonly HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite;
 	private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite;
 	private readonly List<string> _usingList;
+	internal bool ShouldRepeatRewriter { get; private set; }
 
 	public BaseRewriter(SemanticModel model, List<string> usingList,
 		HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> nodesToRewrite,
 		HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> tokensToRewrite) {
-		_model = model;
+		Model = model;
 		_usingList = usingList;
 		_nodesToRewrite = nodesToRewrite;
 		_tokensToRewrite = tokensToRewrite;
@@ -49,10 +50,16 @@ public abstract class BaseRewriter {
 	protected void AddNodeToRewrite(SyntaxNode node) => _nodesToRewrite?.Add((this, node));
 	protected void AddTokenToRewrite(SyntaxToken token) => _tokensToRewrite?.Add((this, token));
 
+	internal void UpdateSemanticModel(SemanticModel model) => Model = model;
+	
+	protected void RequestRewriteRepeat() {
+		ShouldRepeatRewriter = true;
+	}
+
 	protected bool HasSymbol(SyntaxNode node, out ISymbol symbol) {
 		// Try to get the symbol
 		try {
-			symbol = _model.GetSymbolInfo(node).Symbol;
+			symbol = Model.GetSymbolInfo(node).Symbol;
 			return symbol != null;
 		}
 		catch {
@@ -63,8 +70,12 @@ public abstract class BaseRewriter {
 		}
 	}
 
+	/// <summary>
+	/// Tries to get the name of the type of a node, using the semantic model to get the type info.
+	/// </summary>
+	/// <returns>The name of the type of the node</returns>
 	protected string GetTypeName(SyntaxNode node) {
-		TypeInfo info = _model.GetTypeInfo(node);
+		TypeInfo info = Model.GetTypeInfo(node);
 		return info.Type switch {
 			IErrorTypeSymbol => null,
 			null => null,

@@ -9,13 +9,16 @@ namespace tModPorter.Rewriters;
 
 public class MainRewriter : CSharpSyntaxRewriter {
 	private readonly HashSet<(BaseRewriter rewriter, SyntaxNode originalNode)> _nodesToRewrite = new();
-	private readonly ILookup<RewriterType, BaseRewriter> _rewriterLookup;
 	private readonly HashSet<(BaseRewriter rewriter, SyntaxToken originalToken)> _tokensToRewrite = new();
+	private ILookup<RewriterType, BaseRewriter> _rewriterLookup;
+	private readonly HashSet<BaseRewriter> _rewritersToRepeat = new();
 	private readonly List<string> _usingList = new();
 	private SemanticModel _model;
+	private Document _document;
 
-	public MainRewriter(SemanticModel model) {
+	public MainRewriter(Document document, SemanticModel model) {
 		_model = model;
+		_document = document;
 
 		Type baseType = typeof(BaseRewriter);
 		IEnumerable<Type> types = baseType.Assembly.GetTypes().Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
@@ -27,22 +30,43 @@ public class MainRewriter : CSharpSyntaxRewriter {
 	}
 
 	public SyntaxNode RewriteNodes(SyntaxNode rootNode) {
-		Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
-		foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in _nodesToRewrite) {
-			SyntaxNode newNode = rewriter.RewriteNode(originalNode);
-			nodeDictionary.Add(originalNode, newNode);
+		SyntaxNode RewriteAndReplaceNode(SyntaxNode syntaxNode) {
+			Dictionary<SyntaxNode, SyntaxNode> nodeDictionary = new();
+			foreach ((BaseRewriter rewriter, SyntaxNode originalNode) in _nodesToRewrite) {
+				SyntaxNode newNode = rewriter.RewriteNode(originalNode);
+				nodeDictionary.Add(originalNode, newNode);
+			}
+
+			Dictionary<SyntaxToken, SyntaxToken> tokenDictionary = new();
+			foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in _tokensToRewrite) {
+				SyntaxToken newToken = rewriter.RewriteToken(originalToken);
+				tokenDictionary.Add(originalToken, newToken);
+			}
+
+			syntaxNode = syntaxNode.ReplaceSyntax(
+				nodeDictionary.Keys.AsEnumerable(), (original, _) => nodeDictionary[original],
+				tokenDictionary.Keys.AsEnumerable(), (original, _) => tokenDictionary[original],
+				Array.Empty<SyntaxTrivia>(), (original, _) => original);
+			return syntaxNode;
 		}
 
-		Dictionary<SyntaxToken, SyntaxToken> tokenDictionary = new();
-		foreach ((BaseRewriter rewriter, SyntaxToken originalToken) in _tokensToRewrite) {
-			SyntaxToken newToken = rewriter.RewriteToken(originalToken);
-			tokenDictionary.Add(originalToken, newToken);
+		rootNode = RewriteAndReplaceNode(rootNode);
+
+		_document = _document.WithSyntaxRoot(rootNode);
+		_model = _document.GetSemanticModelAsync().Result;
+		rootNode = _document.GetSyntaxRootAsync().Result;
+		
+		_nodesToRewrite.Clear();
+		_tokensToRewrite.Clear();
+
+		foreach (BaseRewriter rewriter in _rewritersToRepeat) {
+			rewriter.UpdateSemanticModel(_model);
 		}
 
-		rootNode = rootNode.ReplaceSyntax(
-			nodeDictionary.Keys.AsEnumerable(), (original, _) => nodeDictionary[original],
-			tokenDictionary.Keys.AsEnumerable(), (original, _) => tokenDictionary[original],
-			Array.Empty<SyntaxTrivia>(), (original, _) => original);
+		_rewriterLookup = _rewritersToRepeat.ToLookup(r => r.RewriterType);
+		Visit(rootNode);
+
+		rootNode = RewriteAndReplaceNode(rootNode);
 
 		return rootNode;
 	}
@@ -55,7 +79,11 @@ public class MainRewriter : CSharpSyntaxRewriter {
 		//	return true;
 		//}
 
-		foreach (BaseRewriter rewriter in _rewriterLookup[type]) rewriter.VisitNode(node);
+		foreach (BaseRewriter rewriter in _rewriterLookup[type]) {
+			rewriter.VisitNode(node);
+			if (rewriter.ShouldRepeatRewriter)
+				_rewritersToRepeat.Add(rewriter);
+		}
 
 		return node;
 	}
