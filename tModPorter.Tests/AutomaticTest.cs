@@ -21,17 +21,6 @@ public class AutomaticTest {
 	[OneTimeSetUp]
 	public async Task Setup() {
 		await LoadProject();
-
-		MetadataReference[] references = {MetadataReference.CreateFromFile(typeof(object).Assembly.Location)};
-	}
-
-	[OneTimeTearDown]
-	public void TearDown() {
-		_compilation = null;
-		_project = null;
-		_workspace = null;
-		
-		Directory.Delete("TestDataRewritten", true);
 	}
 
 	[TestCaseSource(nameof(GetTestCases))]
@@ -59,16 +48,12 @@ public class AutomaticTest {
 		CompilationUnitSyntax result = RewriteCodeOnce(model, rootNode);
 		
 		// Write the rewritten file to disk, so that we can then load it again with the .csproj
-		await File.WriteAllTextAsync(tree.FilePath, result.ToString());
-		await LoadProject(true);
-
-		newDoc = _project.Documents.FirstOrDefault(x => x.FilePath == tree.FilePath)!;
-		Assert.NotNull(newDoc, "Couldn't load the rewritten file from disk.");
-
+		newDoc = newDoc.WithSyntaxRoot(result);
 		tree = await newDoc.GetSyntaxTreeAsync() ?? throw new NullReferenceException("Node has no syntax tree");
-		
-		model = _compilation.GetSemanticModel(tree);
-		rootNode = await tree!.GetRootAsync();
+		Compilation? newCompilation = await newDoc.Project.GetCompilationAsync();
+		Assert.NotNull(newCompilation);
+		model = newCompilation!.GetSemanticModel(tree);
+		rootNode = await tree.GetRootAsync();
 
 		result = RewriteCodeOnce(model, rootNode);
 
@@ -97,16 +82,12 @@ public class AutomaticTest {
 
 		using MSBuildWorkspace workspace = MSBuildWorkspace.Create();
 		_workspace = workspace;
-
-		if (!Directory.Exists("TestDataRewritten")) {
-			CopyFilesRecursively("TestData/", "TestDataRewritten/");
-		}
 		
-		if (!File.Exists("TestDataRewritten/TestData.csproj")) {
+		if (!File.Exists("TestData/TestData.csproj")) {
 			throw new FileNotFoundException("TestData.csproj not found.");
 		}
 		
-		_project = await workspace.OpenProjectAsync("TestDataRewritten/TestData.csproj");
+		_project = await workspace.OpenProjectAsync("TestData/TestData.csproj");
 		
 		_compilation = await _project.GetCompilationAsync();
 
@@ -127,7 +108,7 @@ public class AutomaticTest {
 		
 		foreach (Document document in _project.Documents) {
 			SyntaxTree tree = await document.GetSyntaxTreeAsync() ?? throw new Exception("No syntax tree found for: " + document.FilePath);
-			if (tree.FilePath.Replace('\\', '/').Contains("TestDataRewritten/Common")) continue;
+			if (tree.FilePath.Replace('\\', '/').Contains("TestData/Common")) continue;
 			yield return tree;
 		}
 	}
