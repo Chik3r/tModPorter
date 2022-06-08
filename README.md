@@ -1,3 +1,6 @@
+<h2>Find the latest version of tModPorter in the tModLoader repo: https://github.com/tModLoader/tModLoader/tree/1.4/tModPorter/tModPorter</h2>
+
+---
 **Make a backup before using this tool, either by using git and committing your code, or by copying your mod's source
 code to some other place**
 
